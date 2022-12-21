@@ -41,11 +41,11 @@ async function getAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE a.handler = ?
+        WHERE a.handler = ? || a.handler = ?
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `,
-            [handleName]
+            [handleName, '']
         );
     }
 
@@ -156,10 +156,13 @@ async function getUserIdApp(req, res) {
     FROM status 
     WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求','已轉件','已拒絕接收轉件','已完成')`);
 
-    // handler
-    let myself = result[0].handler;
-    // console.log(myself);
-    let [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?)`, [myself]);
+    let [handlerResult] = '';
+    if (result[0].handler !== '') {
+        // handler
+        let myself = result[0].handler;
+        // console.log(myself);
+        [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?)`, [myself]);
+    }
 
     // file
     let [getFile] = await pool.execute(
@@ -418,7 +421,7 @@ async function handlePostFile(req, res) {
                 return res.send(err);
             }
         });
-        
+
         // 限制是否已有檔案
         let [checkData] = await pool.execute('SELECT * FROM upload_files_detail  WHERE file_no = ? && create_time=?', [
             v.fileNo + [i],
