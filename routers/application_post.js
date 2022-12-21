@@ -46,7 +46,7 @@ router.post('/file', async (req, res) => {
 
     for (let i = 0; i < arr.length; i++) {
         //TODO:上傳路徑
-        let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + v.fileNo + [i] + arr[i].name;
+        let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + v.fileNo + [i];
         arr[i].mv(uploadPath, (err) => {
             if (err) {
                 return res.send(err);
