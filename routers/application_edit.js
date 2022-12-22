@@ -13,9 +13,9 @@ router.patch('/submit/:num', async (req, res) => {
 
         let [application] = await pool.execute(
             `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=? WHERE case_number=? && user_id=? `,
-            [r.handler, r.application_category, r.name, r.cycle, r.status, numId, r.id]
+            [r.handler, r.application_category, r.project_name, r.cycle, r.status, numId, r.id]
         );
-        console.log('r', r);
+        // console.log('r', r);
     } catch (err) {
         console.log(err);
     }
@@ -27,10 +27,12 @@ router.patch('/store/:num', async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
+
         let [application] = await pool.execute(
             `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=? WHERE case_number=? && user_id=? && status_id=?`,
-            [r.handler, r.application_category, r.name, r.cycle, numId, r.id, r.status]
+            [r.handler, r.application_category, r.project_name, r.cycle, numId, r.id, r.status]
         );
+        console.log('r', r);
     } catch (err) {
         console.log(err);
     }
