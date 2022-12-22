@@ -17,9 +17,6 @@ router.post('/postHandle', appController.handlePost);
 router.post('/postAddNeed', appController.handlePostNeed);
 // router.post('/putAcceptNeed/:num', appController.handleAcceptNeed);
 
-// post 儲存修改需求
-router.post('/postEditAddNeed', appController.handlePostEditNeed);
-
 // 取消申請
 router.post('/cancleAcc/:num', appController.handleCancleAcc);
 
