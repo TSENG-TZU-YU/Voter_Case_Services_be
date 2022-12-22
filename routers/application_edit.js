@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
+const { default: axios } = require('axios');
+const fs = require('fs');
 
 // 送出表單
 // http://localhost:3001/api/application_edit/submit
@@ -32,45 +34,74 @@ router.patch('/store/:num', async (req, res) => {
             `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=? WHERE case_number=? && user_id=? && status_id=?`,
             [r.handler, r.application_category, r.project_name, r.cycle, numId, r.id, r.status]
         );
-        console.log('r', r);
     } catch (err) {
         console.log(err);
     }
 });
 
-// router.post('/file', async (req, res) => {
-//     const arr = Object.values(req?.files || {});
-//     let v = req.body;
-//     let nowDate = moment().format('YYYYMM');
+// 上傳檔案
+// http://localhost:3001/api/application_edit/file
+router.post('/file/:num', async (req, res) => {
+    const numId = req.params.num;
+    let v = req.body;
+    let nowDate = moment().format('YYYYMM');
+    const arr = Object.values(req?.files || {});
 
-//     for (let i = 0; i < arr.length; i++) {
-//         //TODO:上傳路徑
-//         let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + v.fileNo + [i];
-//         arr[i].mv(uploadPath, (err) => {
-//             if (err) {
-//                 return res.send(err);
-//             }
-//         });
+    let [deletFile] = await pool.execute(
+        `DELETE FROM upload_files_detail
+    WHERE case_number_id=?`,
+        [numId]
+    );
+    // let filePath = __dirname + `/../${v.dbTime}/${numId}`;
+    // let files = [];
+    // if (fs.existsSync(filePath)) {
+    //     files = fs.readdirSync(filePath);
+    //     files.forEach((file, index) => {
+    //         let curPath = filePath + '/' + file;
+    //         if (fs.statSync(curPath).isDirectory()) {
+    //             delDir(curPath); //遞迴刪除目錄下的資料夾
+    //         } else {
+    //             fs.unlinkSync(curPath); //刪除檔案
+    //         }
+    //     });
+    //     fs.rmdirSync(filePath); //刪除目錄
+    // }
+    // console.log('numId', numId);
 
-//         // 限制是否已有檔案
-//         let [checkData] = await pool.execute('SELECT * FROM upload_files_detail  WHERE file_no = ? && create_time=?', [
-//             v.fileNo + [i],
-//             v.create_time,
-//         ]);
-//         if (checkData.length === 0) {
-//             try {
-//                 let [files] = await pool.execute(
-//                     'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
-//                     [v.number, arr[i].name, v.fileNo + [i], 0, v.create_time]
-//                 );
-//             } catch (err) {
-//                 console.log(err);
-//             }
-//         }
-//     }
+    for (let i = 0; i < arr.length; i++) {
+        // 轉換類型名稱
+        let [category] = await pool.execute('SELECT * FROM application_category');
+        let [newState] = category.filter((d) => {
+            return d.name === v.No;
+        });
+        //TODO:上傳路徑
+        let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + newState.number + v.fileNo + [i];
+        arr[i].mv(uploadPath, (err) => {
+            if (err) {
+                return res.send(err);
+            }
+        });
 
-//     res.send('ok2');
-// });
+        // 限制是否已有檔案
+        let [checkData] = await pool.execute('SELECT * FROM upload_files_detail  WHERE file_no = ? && create_time=?', [
+            newState.number + v.fileNo + [i],
+            v.create_time,
+        ]);
+        if (checkData.length === 0) {
+            try {
+                let [files] = await pool.execute(
+                    'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                    [numId, arr[i].name, newState.number + v.fileNo + [i], 0, v.create_time]
+                );
+                console.log('numId', numId);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    }
+
+    res.send('ok2');
+});
 
 // 匯出
 module.exports = router;
