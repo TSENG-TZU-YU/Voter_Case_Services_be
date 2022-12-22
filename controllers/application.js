@@ -438,7 +438,7 @@ async function handlePostFile(req, res) {
     });
 
     for (let i = 0; i < arr.length; i++) {
-        let uploadPath = __dirname + `/../${nowDate}/${numId}/` + newState.number + v.fileNo + [i] ;
+        let uploadPath = __dirname + `/../${nowDate}/${numId}/` + newState.number + v.fileNo + [i];
         arr[i].mv(uploadPath, (err) => {
             if (err) {
                 return res.send(err);
