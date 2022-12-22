@@ -75,7 +75,6 @@ app.use(
 //     res.json(response);
 //   });
 
-
 //登入
 let login = require('./routers/login');
 app.use('/api/login', login);
@@ -91,6 +90,10 @@ app.use('/api/application_get', application_get);
 //post使用者申請表
 let application_post = require('./routers/application_post');
 app.use('/api/application_post', application_post);
+
+//patch使用者申請表
+let application_edit = require('./routers/application_edit');
+app.use('/api/application_edit', application_edit);
 
 //檔案
 let files = require('./routers/files');
