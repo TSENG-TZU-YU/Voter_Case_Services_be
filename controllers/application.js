@@ -258,9 +258,10 @@ async function handlePostNeed(req, res) {
     let handler = req.body[0];
     let v = req.body[1];
     let id = req.body[2];
+    let input = req.body[3];
     let caseNum = v[0].case_number_id;
-    // console.log('1',req.body);
-    // console.log('2',v);
+    // console.log('1', req.body[3]);
+    // console.log('2', req.body);
     // console.log('3',req.body[2])
 
     let [delResult] = await pool.execute('DELETE FROM application_form_detail WHERE case_number_id = ? ', [caseNum]);
@@ -273,44 +274,24 @@ async function handlePostNeed(req, res) {
     }
 
     // 變更表單狀態
-    let [updateResult] = await pool.execute(
-        'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-        [5, caseNum, id]
-    );
 
-    addHandleState(caseNum, user, 5, '', '', nowDate);
-
-    // console.log('addCalendar', states);
-    res.json({ message: '新增成功' });
-}
-
-// post 儲存需求
-async function handlePostEditNeed(req, res) {
-    let user = req.session.member.name;
-    let handler = req.body[0];
-    let v = req.body[1];
-    let id = req.body[2];
-    let caseNum = v[0].case_number_id;
-    // console.log('1',req.body);
-    // console.log('2',v);
-    // console.log('3',req.body[2])
-
-    let [delResult] = await pool.execute('DELETE FROM application_form_detail WHERE case_number_id = ? ', [caseNum]);
-
-    for (let i = 0; i < v.length; i++) {
-        let [postResult] = await pool.execute(
-            'INSERT INTO application_form_detail (case_number_id, requirement_name, directions, checked, valid) VALUES (?,?,?,?,?)',
-            [v[i].case_number_id, v[i].requirement_name, v[i].directions, 0, 1]
+    if (input === 'finish') {
+        let [updateResult] = await pool.execute(
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+            [5, caseNum, id]
         );
+
+        addHandleState(caseNum, user, 5, '', '', nowDate);
     }
 
-    // 變更表單狀態
-    let [updateResult] = await pool.execute(
-        'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-        [2, caseNum, id]
-    );
+    if (input === 'submit') {
+        let [updateResult] = await pool.execute(
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+            [2, caseNum, id]
+        );
 
-    addHandleState(caseNum, user, 2, '', '', nowDate);
+        addHandleState(caseNum, user, 2, '', '', nowDate);
+    }
 
     // console.log('addCalendar', states);
     res.json({ message: '新增成功' });
@@ -525,5 +506,4 @@ module.exports = {
     handleReceiveCase,
     handleAcceptFinish,
     handleRejectFinish,
-    handlePostEditNeed,
 };
