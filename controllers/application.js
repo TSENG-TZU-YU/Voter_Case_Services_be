@@ -9,12 +9,20 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
     );
 }
 
-// /api/1.0/applicationData?state=1 & maxPrice=100 & minPrice=50 & maxPerson=20 & minPerson=10 & maxDate=20221010 & minPrice=20220910 & order=1 & search & page
+// /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
+    const { category, state, unit, minDate, maxDate } = req.query;
+
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
     // console.log('ucc', permissions);
+
+    // 篩選
+    let categoryVal = category ? `AND (a.application_category = ${category})` : '';
+    let stateVal = state ? `AND (a.status_id = ${state})` : '';
+    let unitVal = unit ? `AND (u.applicant_unit = ${unit})` : '';
+    let dateVal = unit ? `AND (a.create_time BETWEEN '${minDate}' AND '${maxDate} 23:59:59')` : '';
 
     let result = '';
     // user permissions=1
@@ -25,7 +33,7 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? AND a.valid = ?
+      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal}
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY a.create_time DESC
        `,
@@ -48,6 +56,16 @@ async function getAllApp(req, res) {
             [handleName, '', handleName]
         );
     }
+
+    // all申請單位
+    [unitResult] = await pool.execute(`SELECT * FROM unit`);
+
+    // all申請狀態
+    [statusResult] = await pool.execute(`SELECT * FROM status`);
+
+    // all申請類別
+    [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
+
     // console.log('res', result);
     // progress
     // let [progressResult] = await pool.execute(
@@ -68,6 +86,9 @@ async function getAllApp(req, res) {
         //   lastPage,
         // },
         result,
+        unitResult,
+        statusResult,
+        categoryResult,
     });
 }
 
