@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
-const { default: axios } = require('axios');
 const fs = require('fs');
 
 // 送出表單
@@ -14,10 +13,10 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=? WHERE case_number=? && user_id=? `,
+            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=? WHERE case_number=? && id=? `,
             [r.handler, r.application_category, r.project_name, r.cycle, r.status_id, r.create_time, numId, r.id]
         );
-        // console.log('r', r);
+        res.send('ok2');
     } catch (err) {
         console.log(err);
     }
@@ -31,14 +30,13 @@ router.patch('/store/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,create_time=? WHERE case_number=? && user_id=? && status_id=?`,
+            `UPDATE application_form SET handler=?,application_category= ?,project_name= ?,cycle= ?,create_time=? WHERE case_number=? && id=? && status_id=?`,
             [r.handler, r.application_category, r.project_name, r.cycle, r.create_time, numId, r.id, r.status_id]
         );
-        console.log('r', r);
+        res.send('ok2');
     } catch (err) {
         console.log(err);
     }
-  
 });
 
 // 上傳檔案
@@ -55,8 +53,8 @@ router.post('/file/:num', async (req, res) => {
 
         for (let i = 0; i < result.length; i++) {
             let re = result[i].file_no;
+
             const isAsset = v.file.some((item) => item === re);
-            console.log('isAsset', isAsset);
 
             if (isAsset === true) {
                 let [application] = await pool.execute(
