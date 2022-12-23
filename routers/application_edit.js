@@ -30,7 +30,7 @@ router.patch('/store/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET handler=?,application_category= ?,project_name= ?,cycle= ?,create_time=? WHERE case_number=? && id=? && status_id=?`,
+            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,create_time=? WHERE case_number=? && id=? && status_id=?`,
             [r.handler, r.application_category, r.project_name, r.cycle, r.create_time, numId, r.id, r.status_id]
         );
         res.send('ok2');
