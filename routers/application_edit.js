@@ -14,8 +14,8 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=? ,create_time=?WHERE case_number=? && user_id=? `,
-            [r.handler, r.application_category, r.project_name, r.cycle, r.status, v.create_time, numId, r.id]
+            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=? WHERE case_number=? && user_id=? `,
+            [r.handler, r.application_category, r.project_name, r.cycle, r.status_id, r.create_time, numId, r.id]
         );
         // console.log('r', r);
     } catch (err) {
@@ -32,11 +32,13 @@ router.patch('/store/:num', async (req, res) => {
 
         let [application] = await pool.execute(
             `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,create_time=? WHERE case_number=? && user_id=? && status_id=?`,
-            [r.handler, r.application_category, r.project_name, r.cycle, v.create_time, numId, r.id, r.status]
+            [r.handler, r.application_category, r.project_name, r.cycle, r.create_time, numId, r.id, r.status_id]
         );
+        console.log('r', r);
     } catch (err) {
         console.log(err);
     }
+  
 });
 
 // 上傳檔案
@@ -48,32 +50,89 @@ router.post('/file/:num', async (req, res) => {
     const arr = Object.values(req?.files || {});
 
     //刪除資料庫檔案
-    let [deletFile] = await pool.execute(
-        `DELETE FROM upload_files_detail
-    WHERE case_number_id=?`,
-        [numId]
-    );
+    if (v.dbTime.length > 1) {
+        let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
+
+        for (let i = 0; i < result.length; i++) {
+            let re = result[i].file_no;
+            const isAsset = v.file.some((item) => item === re);
+            console.log('isAsset', isAsset);
+
+            if (isAsset === true) {
+                let [application] = await pool.execute(
+                    `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
+                    [v.create_time, numId]
+                );
+            } else {
+                let [deletFile] = await pool.execute(
+                    `DELETE FROM upload_files_detail
+                    WHERE case_number_id=? && file_no=?`,
+                    [numId, result[i].file_no]
+                );
+            }
+
+            // let j = 1;
+            // console.log('後端跑第', i + 1, '次');
+            // for (let front of v.file) {
+            //     console.log('front', front);
+            //     console.log('back', re);
+            //     console.log(`用後端資料跑比對前端第${j}個`);
+            //     j++;
+            // }
+            // for (let back of result) {
+            //     let j = 0;
+
+            //     const { file_no } = back;
+            //     for (let front of v.file) {
+            //         console.log('front', front);
+            //         console.log('file_no', file_no);
+            //         j++;
+            //         console.log(`用後端資料跑比對前端第${j}個`);
+            //     }
+            // }
+
+            // console.log("這邊是跑前端檔案迴圈第",i,'次');
+            // console.log(re);
+            // for (let value of re) {
+            //     console.log('ReValue', value);
+            //     console.log("上下兩邊要比");
+            //     console.log('前端', v.file[i]);
+            // }
+
+            // console.log('i', i);
+            // console.log('前端', v.file[i]);
+            // console.log('資料庫', re);
+        }
+    }
 
     //刪除後端檔案
-    if (v.dbTime.length > 1) {
-        let filePath = __dirname + `/../${v.dbTime}/${numId}`;
-        files = fs.readdirSync(filePath);
-        console.log(' files', files[2]);
-        //TODO:迴圈 讀取原本的檔案NO 有相同的在 rename 檔案no
-        // let files = [];
-        // if (fs.existsSync(filePath)) {
-        //     files = fs.readdirSync(filePath);
-        //     files.forEach((file, index) => {
-        //         let curPath = filePath + '/' + file;
-        //         if (fs.statSync(curPath).isDirectory()) {
-        //             delDir(curPath); //遞迴刪除目錄下的資料夾
-        //         } else {
-        //             fs.unlinkSync(curPath); //刪除檔案
-        //         }
-        //     });
-        //     fs.rmdirSync(filePath); //刪除目錄
-        // }
-    }
+    // if (v.dbTime.length >= 1) {
+    //     let filePath = __dirname + `/../${v.dbTime}/${numId}`;
+    //     files = fs.readdirSync(filePath);
+    //     console.log('v.file.length', v.file.length);
+    //     for (let i = 0; i < v.file.length; i++) {
+    //         console.log('cc', files[i]);
+    //         console.log('dd', v.file[i]);
+    //         // if (v.file[i] === files[i]) {
+    //         //     console.log('aaa', files[i]);
+    //         // } else {
+    //         //     console.log('bbb', v.file[i]);
+    //         //     //TODO:迴圈 讀取原本的檔案NO 有相同的在 rename 檔案no
+    //         //     let files = [];
+    //         //     if (fs.existsSync(filePath)) {
+    //         //         files = fs.readdirSync(filePath);
+    //         //         files.forEach((file, index) => {
+    //         //             let curPath = filePath + '/' + file;
+    //         //             if (fs.statSync(curPath).isDirectory()) {
+    //         //                 delDir(curPath); //遞迴刪除目錄下的資料夾
+    //         //             } else {
+    //         //                 fs.unlinkSync(curPath); //刪除檔案
+    //         //             }
+    //         //         });
+    //         //     }
+    //         // }
+    //     }
+    // }
 
     for (let i = 0; i < arr.length; i++) {
         // 轉換類型名稱
@@ -100,7 +159,6 @@ router.post('/file/:num', async (req, res) => {
                     'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
                     [numId, arr[i].name, newState.number + v.fileNo + [i], 0, v.create_time]
                 );
-                console.log('numId', numId);
             } catch (err) {
                 console.log(err);
             }
@@ -112,3 +170,18 @@ router.post('/file/:num', async (req, res) => {
 
 // 匯出
 module.exports = router;
+
+//    //TODO:迴圈 讀取原本的檔案NO 有相同的在 rename 檔案no
+//    let files = [];
+//    if (fs.existsSync(filePath)) {
+//        files = fs.readdirSync(filePath);
+//        files.forEach((file, index) => {
+//            let curPath = filePath + '/' + file;
+//            if (fs.statSync(curPath).isDirectory()) {
+//                delDir(curPath); //遞迴刪除目錄下的資料夾
+//            } else {
+//                fs.unlinkSync(curPath); //刪除檔案
+//            }
+//        });
+//        fs.rmdirSync(filePath); //刪除目錄
+//    }
