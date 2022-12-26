@@ -37,6 +37,9 @@ router.post('/handlerReceiveCase/:num', appController.handleReceiveCase);
 // 審核歷程
 router.get('/getCaseHistory/:case', appController.getCaseHistory);
 
+// 總管理filter all data
+router.get('/getAssistantAllApp', appController.getAssistantAllApp);
+
 // 全部列表資料
 router.get('/', appController.getAllApp);
 router.post('/:num', appController.getUserIdApp);

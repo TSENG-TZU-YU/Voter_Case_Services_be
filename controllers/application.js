@@ -11,18 +11,21 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 
 // /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate } = req.query;
-
+    const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
     // console.log('ucc', permissions);
 
     // 篩選
-    let categoryVal = category ? `AND (a.application_category = ${category})` : '';
+    let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
-    let unitVal = unit ? `AND (u.applicant_unit = ${unit})` : '';
-    let dateVal = unit ? `AND (a.create_time BETWEEN '${minDate}' AND '${maxDate} 23:59:59')` : '';
+    let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
+    let dateVal =
+        minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+    let finishVal = parseInt(finish) !== 12 ? `AND (a.status_id NOT IN (1,3,9,10,12))` : `AND (a.status_id = 12 )`;
+    let handlerVal = handler ? `AND (a.handler = '${handler}')` : '';
+    let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
     // user permissions=1
@@ -33,7 +36,7 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal}
+      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY a.create_time DESC
        `,
@@ -49,7 +52,7 @@ async function getAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE a.handler = ? OR a.handler = ? OR a.sender = ?
+        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `,
@@ -66,17 +69,13 @@ async function getAllApp(req, res) {
     // all申請類別
     [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
 
+    // all處理人
+    [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+
+    // all申請人
+    [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+
     // console.log('res', result);
-    // progress
-    // let [progressResult] = await pool.execute(
-    //     `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-    // FROM application_form a
-    // JOIN application_form_detail d ON a.case_number = d.case_number_id
-    // WHERE d.valid = ? AND a.user_id = ?
-    // GROUP BY a.case_number,d.case_number_id
-    //  `,
-    //     [1, userId]
-    // );
 
     res.json({
         // pagination: {
@@ -89,6 +88,97 @@ async function getAllApp(req, res) {
         unitResult,
         statusResult,
         categoryResult,
+        handlerResult,
+        userResult,
+    });
+}
+
+// 總管理filter all data
+async function getAssistantAllApp(req, res) {
+    const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
+    let userId = req.session.member.id;
+    let handleName = req.session.member.name;
+    const permissions = req.session.member.permissions_id;
+    // console.log('ucc', permissions);
+
+    // 篩選
+    let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
+    let stateVal = state ? `AND (a.status_id = ${state})` : '';
+    let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
+    let dateVal =
+        minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+    let finishVal = parseInt(finish) !== 12 ? `AND (a.status_id NOT IN (1,3,9,10,12))` : `AND (a.status_id = 12 )`;
+    let handlerVal = handler ? `AND (a.handler = '${handler}')` : '';
+    let userVal = user ? `AND (a.user_id = '${user}')` : '';
+
+    let result = '';
+    // user permissions=1
+    if (permissions === 1) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
+      FROM application_form a 
+      JOIN status s ON a.status_id = s.id
+      JOIN users u ON a.user_id = u.id
+      JOIN application_form_detail d ON a.case_number = d.case_number_id
+      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
+      GROUP BY d.case_number_id,s.name, u.applicant_unit
+      ORDER BY a.create_time DESC
+       `,
+            [userId, 0]
+        );
+    }
+
+    // handler permissions=3
+    if (permissions === 3) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
+        FROM application_form a 
+        JOIN status s ON a.status_id = s.id
+        JOIN users u ON a.user_id = u.id
+        JOIN application_form_detail d ON a.case_number = d.case_number_id
+        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
+        GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
+        ORDER BY a.create_time DESC
+         `,
+            [handleName, '', handleName]
+        );
+    }
+
+    // total
+[dataTotal] = await pool.execute(`SELECT * FROM unit`);
+    let total = result.length;
+
+    // select
+    // all申請單位
+    [unitResult] = await pool.execute(`SELECT * FROM unit`);
+
+    // all申請狀態
+    [statusResult] = await pool.execute(`SELECT * FROM status`);
+
+    // all申請類別
+    [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
+
+    // all處理人
+    [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+
+    // all申請人
+    [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+
+    // console.log('res', result);
+
+    res.json({
+        pagination: {
+            total,
+            //   perPage,
+            //   page,
+            //   lastPage,
+        },
+        result,
+        unitResult,
+        statusResult,
+        categoryResult,
+        handlerResult,
+        userResult,
     });
 }
 
@@ -527,4 +617,5 @@ module.exports = {
     handleReceiveCase,
     handleAcceptFinish,
     handleRejectFinish,
+    getAssistantAllApp,
 };

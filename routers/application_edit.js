@@ -46,13 +46,18 @@ router.post('/file/:num', async (req, res) => {
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
     const arr = Object.values(req?.files || {});
+    console.log('v', v.file === undefined);
+
     console.log('v.dbTime.length', v.dbTime.length);
     console.log('v.file', typeof v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
-        let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
+        console.log('nid', v.dbTime.length);
 
-        for (let i = 1; i < result.length; i++) {
+        let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
+        console.log('res', result);
+
+        for (let i = 0; i < result.length; i++) {
             let re = result[i].file_no;
             console.log('re', i, re);
             //第一個檔案被改成另一個檔案 v.file = undefined
@@ -97,6 +102,7 @@ router.post('/file/:num', async (req, res) => {
                     console.log('isAsset', isAsset);
                 }
             } else {
+                console.log('d', 'del');
                 let [deletFile1] = await pool.execute(
                     `DELETE FROM upload_files_detail
                     WHERE case_number_id=?`,
