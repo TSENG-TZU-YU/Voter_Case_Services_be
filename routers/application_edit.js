@@ -51,7 +51,7 @@ router.post('/file/:num', async (req, res) => {
     if (v.dbTime.length > 1) {
         let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
 
-        for (let i = 0; i < result.length; i++) {
+        for (let i = 1; i < result.length; i++) {
             let re = result[i].file_no;
 
             const isAsset = v.file.some((item) => item === re);
