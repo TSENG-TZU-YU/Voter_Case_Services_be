@@ -48,6 +48,8 @@ router.post('/file/:num', async (req, res) => {
     const arr = Object.values(req?.files || {});
     console.log('v', v.file === undefined);
 
+    console.log('v.dbTime.length', v.dbTime.length);
+    console.log('v.file', typeof v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
         console.log('nid', v.dbTime.length);
@@ -58,37 +60,46 @@ router.post('/file/:num', async (req, res) => {
         for (let i = 0; i < result.length; i++) {
             let re = result[i].file_no;
             console.log('re', i, re);
-            let arr = typeof v.file;
-            // console.log('arr',arr === 'object')
-            //             console.log(i, result[i].file_no);
-            //             console.log('v.file', i, v.file.length);
-            //             console.log('v.file.length ', re === result[i].file_no);
-
-            let isAsset = '';
-            //TODO: 第一個檔案被改成另一個檔案 v.file = undefined
-            // let a = typeof v.file;
-
+            //第一個檔案被改成另一個檔案 v.file = undefined
             if (v.file !== 'undefined' && v.file !== undefined) {
-                if (arr === 'string') {
-                    isAsset = [v.file].some((item) => item === re);
-                    console.log('isAsset', isAsset);
-                } else {
-                    isAsset = v.file.some((item) => item === re);
-                    console.log('isAsset', isAsset);
-                }
-                // console.log('isAsset', isAsset);
+                console.log('tttt', typeof v.file);
+                // 用型態分辨
+                if (typeof v.file === 'string') {
+                    const isAsset = [v.file].some((item) => item === re);
+                    if (isAsset === true) {
+                        let [application] = await pool.execute(
+                            `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
+                            [v.create_time, numId]
+                        );
+                        console.log('true', result[i].file_no);
+                    } else {
+                        let [deletFile] = await pool.execute(
+                            `DELETE FROM upload_files_detail
+                            WHERE case_number_id=? && file_no=?`,
+                            [numId, result[i].file_no]
+                        );
+                        console.log('false', result[i].file_no);
+                    }
 
-                if (isAsset === true) {
-                    let [application] = await pool.execute(
-                        `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
-                        [v.create_time, numId]
-                    );
+                    console.log('isAsset', isAsset);
                 } else {
-                    let [deletFile] = await pool.execute(
-                        `DELETE FROM upload_files_detail
-                        WHERE case_number_id=? && file_no=?`,
-                        [numId, result[i].file_no]
-                    );
+                    const isAsset = v.file.some((item) => item === re);
+                    if (isAsset === true) {
+                        let [application] = await pool.execute(
+                            `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
+                            [v.create_time, numId]
+                        );
+                        console.log('true', result[i].file_no);
+                    } else {
+                        let [deletFile] = await pool.execute(
+                            `DELETE FROM upload_files_detail
+                            WHERE case_number_id=? && file_no=?`,
+                            [numId, result[i].file_no]
+                        );
+                        console.log('false', result[i].file_no);
+                    }
+
+                    console.log('isAsset', isAsset);
                 }
             } else {
                 console.log('d', 'del');
@@ -98,6 +109,14 @@ router.post('/file/:num', async (req, res) => {
                     [numId]
                 );
             }
+
+            // if (v.file === undefined) {
+            //     let [deletFile1] = await pool.execute(
+            //         `DELETE FROM upload_files_detail
+            //         WHERE case_number_id=?`,
+            //         [numId]
+            //     );
+            // }
 
             // let j = 1;
             // console.log('後端跑第', i + 1, '次');
@@ -119,11 +138,11 @@ router.post('/file/:num', async (req, res) => {
             //     }
             // }
 
-            // console.log("這邊是跑前端檔案迴圈第",i,'次');
+            // console.log('這邊是跑前端檔案迴圈第', i, '次');
             // console.log(re);
             // for (let value of re) {
             //     console.log('ReValue', value);
-            //     console.log("上下兩邊要比");
+            //     console.log('上下兩邊要比');
             //     console.log('前端', v.file[i]);
             // }
 
