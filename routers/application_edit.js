@@ -46,23 +46,38 @@ router.post('/file/:num', async (req, res) => {
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
     const arr = Object.values(req?.files || {});
+    console.log('v', v.file === undefined);
 
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
+        console.log('nid', v.dbTime.length);
+
         let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
+        console.log('res', result);
 
-        for (let i = 1; i < result.length; i++) {
+        for (let i = 0; i < result.length; i++) {
             let re = result[i].file_no;
-            console.log(i, result[i].file_no);
-            console.log('v.file', i, v.file);
-            console.log('v.file.length ', v.file.length);
+            console.log('re', i, re);
+            let arr = typeof v.file;
+            // console.log('arr',arr === 'object')
+            //             console.log(i, result[i].file_no);
+            //             console.log('v.file', i, v.file.length);
+            //             console.log('v.file.length ', re === result[i].file_no);
 
+            let isAsset = '';
             //TODO: 第一個檔案被改成另一個檔案 v.file = undefined
             // let a = typeof v.file;
-            if (v.file !== 'undefined') {
-                const isAsset = v.file.some((item) => item === re);
 
-                console.log('isAsset', isAsset);
+            if (v.file !== 'undefined' && v.file !== undefined) {
+                if (arr === 'string') {
+                    isAsset = [v.file].some((item) => item === re);
+                    console.log('isAsset', isAsset);
+                } else {
+                    isAsset = v.file.some((item) => item === re);
+                    console.log('isAsset', isAsset);
+                }
+                // console.log('isAsset', isAsset);
+
                 if (isAsset === true) {
                     let [application] = await pool.execute(
                         `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
@@ -76,6 +91,7 @@ router.post('/file/:num', async (req, res) => {
                     );
                 }
             } else {
+                console.log('d', 'del');
                 let [deletFile1] = await pool.execute(
                     `DELETE FROM upload_files_detail
                     WHERE case_number_id=?`,
