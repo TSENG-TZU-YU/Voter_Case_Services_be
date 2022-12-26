@@ -53,19 +53,33 @@ router.post('/file/:num', async (req, res) => {
 
         for (let i = 1; i < result.length; i++) {
             let re = result[i].file_no;
+            console.log(i, result[i].file_no);
+            console.log('v.file', i, v.file);
+            console.log('v.file.length ', v.file.length);
 
-            const isAsset = v.file.some((item) => item === re);
+            //TODO: 第一個檔案被改成另一個檔案 v.file = undefined
+            // let a = typeof v.file;
+            if (v.file !== 'undefined') {
+                const isAsset = v.file.some((item) => item === re);
 
-            if (isAsset === true) {
-                let [application] = await pool.execute(
-                    `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
-                    [v.create_time, numId]
-                );
+                console.log('isAsset', isAsset);
+                if (isAsset === true) {
+                    let [application] = await pool.execute(
+                        `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
+                        [v.create_time, numId]
+                    );
+                } else {
+                    let [deletFile] = await pool.execute(
+                        `DELETE FROM upload_files_detail
+                        WHERE case_number_id=? && file_no=?`,
+                        [numId, result[i].file_no]
+                    );
+                }
             } else {
-                let [deletFile] = await pool.execute(
+                let [deletFile1] = await pool.execute(
                     `DELETE FROM upload_files_detail
-                    WHERE case_number_id=? && file_no=?`,
-                    [numId, result[i].file_no]
+                    WHERE case_number_id=?`,
+                    [numId]
                 );
             }
 
@@ -108,9 +122,11 @@ router.post('/file/:num', async (req, res) => {
     //     let filePath = __dirname + `/../${v.dbTime}/${numId}`;
     //     files = fs.readdirSync(filePath);
     //     console.log('v.file.length', v.file.length);
-    //     for (let i = 0; i < v.file.length; i++) {
-    //         console.log('cc', files[i]);
-    //         console.log('dd', v.file[i]);
+    //     for (let i = 0; i < files.length; i++) {
+    //         console.log('後端', files[i]);
+    //         console.log('前端', v.file[i]);
+    //         const isAsset = v.file.some((item) => item === files);
+    //         console.log('isAsset', isAsset);
     //         // if (v.file[i] === files[i]) {
     //         //     console.log('aaa', files[i]);
     //         // } else {
