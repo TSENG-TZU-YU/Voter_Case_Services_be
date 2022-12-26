@@ -48,22 +48,15 @@ router.post('/file/:num', async (req, res) => {
     const arr = Object.values(req?.files || {});
     console.log('v.dbTime.length', v.dbTime.length);
     console.log('v.file', typeof v.file);
-    // console.log('222', v.file.length === 1);
-    // console.log('333', v.file.length);
-    // let arr1 = ['hi'];
-    // console.log('444', arr1.length); // 4
-    // return;
-    // return;
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
         let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
-        console.log('result.length', result.length);
-        for (let i = 0; i < result.length; i++) {
+
+        for (let i = 1; i < result.length; i++) {
             let re = result[i].file_no;
             console.log('re', i, re);
             //第一個檔案被改成另一個檔案 v.file = undefined
             if (v.file !== 'undefined' && v.file !== undefined) {
-                console.log('v.file1111', v.file);
                 console.log('tttt', typeof v.file);
                 // 用型態分辨
                 if (typeof v.file === 'string') {
