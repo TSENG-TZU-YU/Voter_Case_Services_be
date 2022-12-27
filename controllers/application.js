@@ -15,6 +15,8 @@ async function getAllApp(req, res) {
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
+    let manage = req.session.member.manage;
+
     // console.log('ucc', permissions);
 
     // 篩選
@@ -72,6 +74,16 @@ async function getAllApp(req, res) {
          `,
             [handleName, '', handleName]
         );
+    }
+    //manage = 1
+    if (manage === 1) {
+        [result] =
+            await pool.execute(`SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
+        FROM application_form a
+        JOIN status s ON a.status_id = s.id
+        JOIN users u ON a.user_id = u.id
+        JOIN application_form_detail d ON a.case_number = d.case_number_id  WHERE (status_id NOT IN (1)) GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
+        ORDER BY a.create_time DESC`);
     }
 
     // all申請單位
