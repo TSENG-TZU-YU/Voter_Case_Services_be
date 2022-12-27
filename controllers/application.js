@@ -9,9 +9,9 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
     );
 }
 
-// /api/1.0/applicationData/getAssistantAllApp?category = 1
+// /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
+    const { category, state, unit, minDate, maxDate } = req.query;
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
@@ -66,7 +66,7 @@ async function getAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
+        WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `,
@@ -108,6 +108,7 @@ async function getAllApp(req, res) {
 }
 
 // 總管理filter all data
+// /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
     // console.log('c', category, state, unit, minDate, maxDate, finish, typeof handler, user);
@@ -127,7 +128,11 @@ async function getAssistantAllApp(req, res) {
             ? `AND (a.status_id NOT IN (1,3,9,10,12))`
             : `AND (a.status_id = 12 )`
         : '';
-    let handlerVal = handler ? (handler !== '1' ? `AND (a.handler = '${handler}')` : `AND (a.handler = '')`) : '';
+    let handlerVal = handler
+        ? handler !== '尚無管理人'
+            ? `AND (a.handler = '${handler}')`
+            : `AND (a.handler = '')`
+        : '';
     let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
@@ -199,7 +204,7 @@ async function getAssistantAllApp(req, res) {
         return acc;
     }, {});
 
-    console.log(counts);
+    // console.log(counts);
 
     // all申請類別
     let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
