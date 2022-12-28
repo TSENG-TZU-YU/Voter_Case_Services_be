@@ -67,5 +67,17 @@ router.get('/auth', async (req, res) => {
     }
 });
 
+//撈取單位
+// http://localhost:3001/api/login/unit
+router.get('/unit', async (req, res) => {
+    try {
+        let [unit] = await pool.execute('SELECT * FROM unit ');
+
+        res.json(unit);
+    } catch (err) {
+        console.log(err);
+    }
+});
+
 // 匯出
 module.exports = router;
