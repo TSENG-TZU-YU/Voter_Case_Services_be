@@ -9,7 +9,7 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
     );
 }
 
-// /api/1.0/applicationData?category = 1
+// /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
     let userId = req.session.member.id;
@@ -25,9 +25,6 @@ async function getAllApp(req, res) {
     let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
-    let finishVal = parseInt(finish) !== 12 ? `AND (a.status_id NOT IN (1,3,9,10,12))` : `AND (a.status_id = 12 )`;
-    let handlerVal = handler ? `AND (a.handler = '${handler}')` : '';
-    let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
     // user permissions=1
@@ -54,7 +51,24 @@ async function getAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
+        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
+        GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
+        ORDER BY a.create_time DESC
+         `,
+            [handleName, '', handleName]
+        );
+    }
+
+    // TODO:未改
+    // handler permissions=4
+    if (permissions === 4) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
+        FROM application_form a 
+        JOIN status s ON a.status_id = s.id
+        JOIN users u ON a.user_id = u.id
+        JOIN application_form_detail d ON a.case_number = d.case_number_id
+        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `,
@@ -108,6 +122,7 @@ async function getAllApp(req, res) {
 // 總管理filter all data
 async function getAssistantAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
+    // console.log('c', category, state, unit, minDate, maxDate, finish, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
@@ -119,8 +134,12 @@ async function getAssistantAllApp(req, res) {
     let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
-    let finishVal = parseInt(finish) !== 12 ? `AND (a.status_id NOT IN (1,3,9,10,12))` : `AND (a.status_id = 12 )`;
-    let handlerVal = handler ? `AND (a.handler = '${handler}')` : '';
+    let finishVal = finish
+        ? parseInt(finish) !== 12
+            ? `AND (a.status_id NOT IN (1,3,9,10,12))`
+            : `AND (a.status_id = 12 )`
+        : '';
+    let handlerVal = handler ? (handler !== '1' ? `AND (a.handler = '${handler}')` : `AND (a.handler = '')`) : '';
     let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
@@ -140,47 +159,77 @@ async function getAssistantAllApp(req, res) {
         );
     }
 
-    // handler permissions=3
-    if (permissions === 3) {
+    // handler permissions=4
+    if (permissions === 4 || manage === 1) {
         [result] = await pool.execute(
             `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
         FROM application_form a 
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
+        WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
-         `,
-            [handleName, '', handleName]
+         `
         );
     }
 
     // total
-    [dataTotal] = await pool.execute(`SELECT * FROM unit`);
+    let [dataTotal] = await pool.execute(`SELECT * FROM application_form WHERE status_id NOT IN (1)`);
+    // 全部申請案件
+    let allTotal = dataTotal.length;
+    // 篩選總數
     let total = result.length;
+    // console.log('t', dataTotal);
 
     // select
     // all申請單位
-    [unitResult] = await pool.execute(`SELECT * FROM unit`);
+    let [unitResult] = await pool.execute(`SELECT * FROM unit`);
 
+    // TODO:簡化
     // all申請狀態
-    [statusResult] = await pool.execute(`SELECT * FROM status`);
+    let [statusResult] = await pool.execute(`SELECT * FROM status`);
+
+    let statusTtl = [];
+    for (let i = 0; i < statusResult.length; i++) {
+        // let [[res]] = await pool.execute(
+        //     `SELECT sum(status_id = ${statusResult[i].id}) AS total FROM application_form`
+        // );
+        result.filter((v) => {
+            if (statusResult[i].id === v.status_id) {
+                return statusTtl.push(v.status_id);
+            }
+        });
+    }
+    // console.log('ct', statusTtl);
+    const counts = statusTtl.reduce((acc, cur) => {
+        if (`state${cur}` in acc) {
+            acc[`state${cur}`]++;
+        } else {
+            acc[`state${cur}`] = 1;
+        }
+        return acc;
+    }, {});
+
+    console.log(counts);
 
     // all申請類別
-    [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
+    let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
 
     // all處理人
-    [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+    let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
 
     // all申請人
-    [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+    let [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
 
     // console.log('res', result);
 
     res.json({
         pagination: {
+            allTotal,
             total,
+            // statusTtl,
+            counts,
             //   perPage,
             //   page,
             //   lastPage,
