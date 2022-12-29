@@ -104,6 +104,9 @@ app.use('/api/files', files);
 const applicationData = require('./routers/application');
 app.use('/api/1.0/applicationData', applicationData);
 
+const application_handler = require('./routers/application_handler');
+app.use('/api/1.0/handler/applicationData', application_handler);
+
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
     console.log(`server start at ${port}`);
