@@ -140,7 +140,7 @@ async function getAllApp(req, res) {
 // 總管理filter all data
 // /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, finish, handler, user } = req.query;
+    const { category, state, unit, minDate, maxDate, finish, handler, user, userUnit } = req.query;
     // console.log('c', category, state, unit, minDate, maxDate, finish, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
@@ -206,13 +206,12 @@ async function getAssistantAllApp(req, res) {
     // console.log('t', dataTotal);
 
     // select
-    // all申請單位
-    let [unitResult] = await pool.execute(`SELECT * FROM unit`);
 
     // TODO:簡化
     // all申請狀態
     let [statusResult] = await pool.execute(`SELECT * FROM status`);
 
+    // count申請狀態
     let statusTtl = [];
     for (let i = 0; i < statusResult.length; i++) {
         // let [[res]] = await pool.execute(
@@ -239,23 +238,62 @@ async function getAssistantAllApp(req, res) {
     // all申請類別
     let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
 
+    // count申請類別
+    let categoryTtl = [];
+    for (let i = 0; i < result.length; i++) {
+        categoryTtl.push(result[i].application_category);
+    }
+    // console.log('ct', categoryTtl);
+
+    const categoryCounts = categoryTtl.reduce((acc, cur) => {
+        if (`state${cur}` in acc) {
+            acc[`state${cur}`]++;
+        } else {
+            acc[`state${cur}`] = 1;
+        }
+        return acc;
+    }, {});
+
+    // all申請單位
+    let [unitResult] = await pool.execute(`SELECT * FROM unit`);
+
+    // count申請單位
+    let unitTtl = [];
+    for (let i = 0; i < result.length; i++) {
+        unitTtl.push(result[i].applicant_unit);
+    }
+    // console.log('ct', unitTtl);
+
+    const unitCounts = unitTtl.reduce((acc, cur) => {
+        if (`state${cur}` in acc) {
+            acc[`state${cur}`]++;
+        } else {
+            acc[`state${cur}`] = 1;
+        }
+        return acc;
+    }, {});
+
     // all處理人
     let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
 
     // all申請人
-    let [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+    let userResult = '';
+    if (userUnit !== '') {
+        [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ? AND applicant_unit = ?`, [
+            1,
+            userUnit,
+        ]);
+    }
 
-    // console.log('res', result);
+    // console.log('res', unitCounts);
 
     res.json({
         pagination: {
             allTotal,
             total,
-            // statusTtl,
             counts,
-            //   perPage,
-            //   page,
-            //   lastPage,
+            categoryCounts,
+            unitCounts,
         },
         result,
         unitResult,
