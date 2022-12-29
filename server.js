@@ -99,6 +99,10 @@ app.use('/api/application_edit', application_edit);
 let files = require('./routers/files');
 app.use('/api/files', files);
 
+//權限
+let permissions = require('./routers/permissions');
+app.use('/api/permissions', permissions);
+
 //-----------------------------------------------------
 // Routers middleware
 const applicationData = require('./routers/application');
