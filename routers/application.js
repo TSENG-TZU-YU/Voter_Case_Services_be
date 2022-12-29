@@ -42,6 +42,8 @@ router.get('/getAssistantAllApp', appController.getAssistantAllApp);
 
 // 全部列表資料
 router.get('/', appController.getAllApp);
+
+
 router.post('/:num', appController.getUserIdApp);
 
 // post file

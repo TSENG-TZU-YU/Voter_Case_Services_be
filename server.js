@@ -99,10 +99,17 @@ app.use('/api/application_edit', application_edit);
 let files = require('./routers/files');
 app.use('/api/files', files);
 
+//權限
+let permissions = require('./routers/permissions');
+app.use('/api/permissions', permissions);
+
 //-----------------------------------------------------
 // Routers middleware
 const applicationData = require('./routers/application');
 app.use('/api/1.0/applicationData', applicationData);
+
+const application_handler = require('./routers/application_handler');
+app.use('/api/1.0/handler/applicationData', application_handler);
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
