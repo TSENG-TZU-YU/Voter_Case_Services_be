@@ -24,5 +24,19 @@ router.get('/cycle', async (req, res) => {
     res.json(result);
 });
 
+// 縣市
+// http://localhost:3001/api/application_get/county
+router.get('/county', async (req, res) => {
+    let [result] = await pool.execute(`SELECT * FROM county`);
+    res.json(result);
+});
+
+// 區
+// http://localhost:3001/api/application_get/area
+router.get('/area', async (req, res) => {
+    let [result] = await pool.execute(`SELECT * FROM area `);
+    res.json(result);
+});
+
 // 匯出
 module.exports = router;

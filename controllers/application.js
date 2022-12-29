@@ -60,7 +60,7 @@ async function getAllApp(req, res) {
         );
     }
 
-    // handler permissions=3
+    // // handler permissions=3
     // if (permissions === 3) {
     //     [result] = await pool.execute(
     //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
@@ -76,9 +76,9 @@ async function getAllApp(req, res) {
     //     );
     // }
 
-    // TODO:未改
-    // handler permissions=4
-    // if (permissions === 4 || manage === 1) {
+    // // TODO:未改
+    // // handler permissions=4
+    // if (permissions === 4 ) {
     //     [result] = await pool.execute(
     //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
     //     FROM application_form a
