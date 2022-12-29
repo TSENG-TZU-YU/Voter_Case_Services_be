@@ -129,8 +129,8 @@ async function getAllApp(req, res) {
 // 總管理filter all data
 // /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, finish, handler, user, userUnit } = req.query;
-    // console.log('c', category, state, unit, minDate, maxDate, finish, typeof handler, user);
+    const { category, state, unit, minDate, maxDate, handler, user, userUnit } = req.query;
+    // console.log('c', category, state, unit, minDate, maxDate, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
@@ -143,13 +143,13 @@ async function getAssistantAllApp(req, res) {
     let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
-    let finishVal = finish
-        ? parseInt(finish) !== 12
-            ? `AND (a.status_id NOT IN (1,3,9,10,12))`
-            : `AND (a.status_id = 12 )`
-        : '';
+    // let finishVal = finish
+    //     ? parseInt(finish) !== 12
+    //         ? `AND (a.status_id NOT IN (1,3,9,10,12))`
+    //         : `AND (a.status_id = 12 )`
+    //     : '';
     let handlerVal = handler
-        ? handler !== '尚無管理人'
+        ? handler !== '尚無處理人'
             ? `AND (a.handler = '${handler}')`
             : `AND (a.handler = '')`
         : '';
@@ -180,7 +180,7 @@ async function getAssistantAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${finishVal} ${handlerVal} ${userVal}
+        WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${handlerVal} ${userVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `
@@ -193,7 +193,7 @@ async function getAssistantAllApp(req, res) {
     let allTotal = dataTotal.length;
     // 篩選總數
     let total = result.length;
-    // console.log('t', dataTotal);
+    // console.log('t', result);
 
     // select
 
@@ -203,25 +203,14 @@ async function getAssistantAllApp(req, res) {
 
     // count申請狀態
     let statusTtl = [];
-    for (let i = 0; i < statusResult.length; i++) {
-        // let [[res]] = await pool.execute(
-        //     `SELECT sum(status_id = ${statusResult[i].id}) AS total FROM application_form`
-        // );
-        result.filter((v) => {
-            if (statusResult[i].id === v.status_id) {
-                return statusTtl.push(v.status_id);
-            }
-        });
+    for (let i = 0; i < result.length; i++) {
+        statusTtl.push(result[i].status_id);
     }
-    // console.log('ct', statusTtl);
-    const counts = statusTtl.reduce((acc, cur) => {
-        if (`state${cur}` in acc) {
-            acc[`state${cur}`]++;
-        } else {
-            acc[`state${cur}`] = 1;
-        }
-        return acc;
-    }, {});
+    let stCount = {};
+    for (let a of statusTtl) {
+        stCount[a] = stCount[a] + 1 || 1;
+    }
+    let counts = Object.entries(stCount).map(([state, count]) => ({ [`${state}`]: count }));
 
     // console.log(counts);
 
@@ -233,16 +222,13 @@ async function getAssistantAllApp(req, res) {
     for (let i = 0; i < result.length; i++) {
         categoryTtl.push(result[i].application_category);
     }
-    // console.log('ct', categoryTtl);
 
-    const categoryCounts = categoryTtl.reduce((acc, cur) => {
-        if (`state${cur}` in acc) {
-            acc[`state${cur}`]++;
-        } else {
-            acc[`state${cur}`] = 1;
-        }
-        return acc;
-    }, {});
+    let cateCount = {};
+    for (let a of categoryTtl) {
+        cateCount[a] = cateCount[a] + 1 || 1;
+    }
+    let categoryCounts = Object.entries(cateCount).map(([state, count]) => ({ [`${state}`]: count }));
+    // console.log('ct', categoryTtl);
 
     // all申請單位
     let [unitResult] = await pool.execute(`SELECT * FROM unit`);
@@ -252,16 +238,24 @@ async function getAssistantAllApp(req, res) {
     for (let i = 0; i < result.length; i++) {
         unitTtl.push(result[i].applicant_unit);
     }
-    // console.log('ct', unitTtl);
 
-    const unitCounts = unitTtl.reduce((acc, cur) => {
-        if (`state${cur}` in acc) {
-            acc[`state${cur}`]++;
-        } else {
-            acc[`state${cur}`] = 1;
-        }
-        return acc;
-    }, {});
+    let uCount = {};
+    for (let a of unitTtl) {
+        uCount[a] = uCount[a] + 1 || 1;
+    }
+    let unitCounts = Object.entries(uCount).map(([state, count]) => ({ [`${state}`]: count }));
+
+    // count處理人
+    let handlerTtl = [];
+    for (let i = 0; i < result.length; i++) {
+        handlerTtl.push(result[i].handler);
+    }
+
+    let aCount = {};
+    for (let a of handlerTtl) {
+        aCount[a] = aCount[a] + 1 || 1;
+    }
+    let handlerCounts = Object.entries(aCount).map(([state, count]) => ({ [`${state}`]: count }));
 
     // all處理人
     let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
@@ -275,7 +269,7 @@ async function getAssistantAllApp(req, res) {
         ]);
     }
 
-    // console.log('res', unitCounts);
+    // console.log('res', handlerCounts);
 
     res.json({
         pagination: {
@@ -284,6 +278,7 @@ async function getAssistantAllApp(req, res) {
             counts,
             categoryCounts,
             unitCounts,
+            handlerCounts,
         },
         result,
         unitResult,
