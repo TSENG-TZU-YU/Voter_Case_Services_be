@@ -60,7 +60,7 @@ async function getAllApp(req, res) {
         );
     }
 
-    // handler permissions=3
+    // // handler permissions=3
     // if (permissions === 3) {
     //     [result] = await pool.execute(
     //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
@@ -76,9 +76,9 @@ async function getAllApp(req, res) {
     //     );
     // }
 
-    // TODO:未改
-    // handler permissions=4
-    // if (permissions === 4 || manage === 1) {
+    // // TODO:未改
+    // // handler permissions=4
+    // if (permissions === 4 ) {
     //     [result] = await pool.execute(
     //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
     //     FROM application_form a
@@ -252,7 +252,7 @@ async function getAssistantAllApp(req, res) {
     for (let i = 0; i < result.length; i++) {
         unitTtl.push(result[i].applicant_unit);
     }
-    // console.log('ct', unitTtl);
+    console.log('ct', unitTtl);
 
     const unitCounts = unitTtl.reduce((acc, cur) => {
         if (`state${cur}` in acc) {
@@ -262,6 +262,8 @@ async function getAssistantAllApp(req, res) {
         }
         return acc;
     }, {});
+    console.log('ct', unitCounts);
+
 
     // all處理人
     let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
