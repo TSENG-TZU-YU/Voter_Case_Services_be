@@ -346,7 +346,7 @@ async function getUserIdApp(req, res) {
         `SELECT a.*, s.name, u.applicant_unit
     FROM application_form a
     JOIN status s ON a.status_id = s.id
-    JOIN users u ON a.user_id = u.id
+    JOIN users u ON a.user_id = u.id 
     WHERE a.case_number = ? AND a.id = ?`,
         [numId, caseId]
     );
