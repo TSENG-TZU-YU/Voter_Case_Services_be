@@ -13,8 +13,28 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=? WHERE case_number=? && id=? `,
-            [r.handler, r.application_category, r.project_name, r.cycle, r.status_id, r.create_time, numId, r.id]
+            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=? WHERE case_number=? && id=? `,
+            [
+                r.handler,
+                r.application_category,
+                r.project_name,
+                r.cycle,
+                r.status_id,
+                r.create_time,
+                r.relation,
+                r.litigant,
+                r.litigant_phone,
+                r.litigant_county_id,
+                r.litigant_area_id,
+                r.litigant_rimin,
+                r.litigant_address,
+                r.client_name,
+                r.client_phone,
+                r.client_address,
+                r.remark,
+                numId,
+                r.id,
+            ]
         );
         res.send('ok2');
     } catch (err) {
@@ -28,10 +48,29 @@ router.patch('/store/:num', async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
-
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,create_time=? WHERE case_number=? && id=? && status_id=?`,
-            [r.handler, r.application_category, r.project_name, r.cycle, r.create_time, numId, r.id, r.status_id]
+            `UPDATE application_form SET handler=?,application_category=?,project_name=?,cycle=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=? WHERE case_number=? && id=? && status_id=?`,
+            [
+                r.handler,
+                r.application_category,
+                r.project_name,
+                r.cycle,
+                r.create_time,
+                r.relation,
+                r.litigant,
+                r.litigant_phone,
+                r.litigant_county_id,
+                r.litigant_area_id,
+                r.litigant_rimin,
+                r.litigant_address,
+                r.client_name,
+                r.client_phone,
+                r.client_address,
+                r.remark,
+                numId,
+                r.id,
+                r.status_id,
+            ]
         );
         res.send('ok2');
     } catch (err) {
@@ -150,6 +189,7 @@ router.post('/file/:num', async (req, res) => {
             // console.log('前端', v.file[i]);
             // console.log('資料庫', re);
         }
+        res.send('ok2');
     }
 
     //刪除後端檔案
@@ -215,6 +255,23 @@ router.post('/file/:num', async (req, res) => {
     }
 
     res.send('ok2');
+});
+
+// 送出表單
+// http://localhost:3001/api/application_edit/deleteForm
+router.post('/deleteForm/:num', async (req, res) => {
+    try {
+        const numId = req.params.num;
+        let r = req.body;
+
+        let [application] = await pool.execute(
+            `DELETE FROM application_form   WHERE case_number=? && id=? && status_id=?`,
+            [numId, r.id, r.status_id]
+        );
+        res.send('ok2');
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 // 匯出

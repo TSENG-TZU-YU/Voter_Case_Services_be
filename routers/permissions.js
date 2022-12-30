@@ -25,22 +25,22 @@ router.get('/user', async (req, res) => {
 //權限  http://localhost:3001/api/permissions/allPermissionsData
 router.get('/allPermissionsData', async (req, res) => {
     try {
-        let [result] = await pool.execute('SELECT * FROM users WHERE director=? || handler=?', [1, 1]);
+        let [result] = await pool.execute('SELECT * FROM users u  WHERE director=? || handler=?', [1, 1]);
         res.json(result);
     } catch (err) {
         console.log(err);
     }
 });
 
-//送出修改 http://localhost:3001/api/permissions
-router.patch('/', async (req, res) => {
-    try {
-        let [result] = await pool.execute('SELECT * FROM users');
-        res.json(result);
-    } catch (err) {
-        console.log(err);
-    }
-});
+// //送出單位 http://localhost:3001/api/permissions
+// router.patch('/', async (req, res) => {
+//     try {
+//         let [result] = await pool.execute('SELECT * FROM users WHERE');
+//         res.json(result);
+//     } catch (err) {
+//         console.log(err);
+//     }
+// });
 
 // 匯出
 module.exports = router;

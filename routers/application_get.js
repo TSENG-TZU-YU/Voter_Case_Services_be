@@ -33,9 +33,19 @@ router.get('/county', async (req, res) => {
 
 // 區
 // http://localhost:3001/api/application_get/area
-router.get('/area', async (req, res) => {
-    let [result] = await pool.execute(`SELECT * FROM area `);
-    res.json(result);
+router.post('/area', async (req, res) => {
+    let v = req.body;
+    let [county] = await pool.execute(`SELECT * FROM county`);
+    let [nemData] = county.filter((d) => {
+        return d.name === v.area;
+    });
+    try {
+        let [result] = await pool.execute(`SELECT * FROM area WHERE county_id=?`, [nemData.id]);
+
+        res.json(result);
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 // 匯出
