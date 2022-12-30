@@ -156,11 +156,11 @@ async function getAssistantAllApp(req, res) {
     let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
-    // user permissions=1
+    // // user permissions=1
     if (permissions === 1) {
         [result] = await pool.execute(
-            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
-      FROM application_form a 
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
+      FROM application_form a
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
@@ -180,7 +180,7 @@ async function getAssistantAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${handlerVal} ${userVal}
+        WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${handlerVal} ${userVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `
@@ -212,7 +212,7 @@ async function getAssistantAllApp(req, res) {
     }
     let counts = Object.entries(stCount).map(([state, count]) => ({ [`${state}`]: count }));
 
-    // console.log(counts);
+    // console.log(statusResult);
 
     // all申請類別
     let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
@@ -228,7 +228,6 @@ async function getAssistantAllApp(req, res) {
         cateCount[a] = cateCount[a] + 1 || 1;
     }
     let categoryCounts = Object.entries(cateCount).map(([state, count]) => ({ [`${state}`]: count }));
-    // console.log('ct', categoryTtl);
 
     // all申請單位
     let [unitResult] = await pool.execute(`SELECT * FROM unit`);
@@ -244,6 +243,7 @@ async function getAssistantAllApp(req, res) {
         uCount[a] = uCount[a] + 1 || 1;
     }
     let unitCounts = Object.entries(uCount).map(([state, count]) => ({ [`${state}`]: count }));
+    // console.log('ct', unitCounts);
 
     // count處理人
     let handlerTtl = [];
@@ -259,6 +259,7 @@ async function getAssistantAllApp(req, res) {
 
     // all處理人
     let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+    let [AllUserResult] = await pool.execute(`SELECT * FROM users`);
 
     // all申請人
     let userResult = '';
@@ -269,7 +270,19 @@ async function getAssistantAllApp(req, res) {
         ]);
     }
 
-    // console.log('res', handlerCounts);
+    // count申請類別
+    let userTtl = [];
+    for (let i = 0; i < result.length; i++) {
+        userTtl.push(result[i].user);
+    }
+
+    let userCount = {};
+    for (let a of userTtl) {
+        userCount[a] = userCount[a] + 1 || 1;
+    }
+    let userCounts = Object.entries(userCount).map(([state, count]) => ({ [`${state}`]: count }));
+    // console.log('ct', userCount);
+    // console.log('res', userCounts);
 
     res.json({
         pagination: {
@@ -279,6 +292,7 @@ async function getAssistantAllApp(req, res) {
             categoryCounts,
             unitCounts,
             handlerCounts,
+            userCounts,
         },
         result,
         unitResult,
@@ -286,6 +300,7 @@ async function getAssistantAllApp(req, res) {
         categoryResult,
         handlerResult,
         userResult,
+        AllUserResult,
     });
 }
 
@@ -656,6 +671,38 @@ async function handleRejectFinish(req, res) {
     res.json({ message: '拒絕接收成功' });
 }
 
+// 案件處理情形
+async function getHandleStatus(req, res) {
+    const caseNum = req.params.case;
+    // console.log('c', caseNum);
+
+    let [result] = await pool.execute(
+        `SELECT r.content ,r.create_time ,h.name  
+  FROM handler_remark r
+  JOIN handler h ON r.handler_id = h.id
+  WHERE r.case_number = ?
+  ORDER BY r.create_time DESC
+   `,
+        [caseNum]
+    );
+
+    // console.log('addCalendar', result);
+    res.json({ result });
+}
+
+// post 案件處理情形
+async function postHandleStatus(req, res) {
+    let handler = req.session.member.id;
+    let v = req.body;
+    // console.log('first', v, handler);
+    let [result] = await pool.execute(
+        'INSERT INTO handler_remark (case_number, content, handler_id, create_time) VALUES (?,?,?,?)',
+        [v.caseNum, v.submitMessage, handler, nowDate]
+    );
+
+    res.json({ message: 'msg新增成功' });
+}
+
 // file
 async function handlePostFile(req, res) {
     const numId = req.params.num;
@@ -725,4 +772,6 @@ module.exports = {
     handleAcceptFinish,
     handleRejectFinish,
     getAssistantAllApp,
+    getHandleStatus,
+    postHandleStatus,
 };
