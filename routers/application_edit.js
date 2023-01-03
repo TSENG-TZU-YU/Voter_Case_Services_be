@@ -48,8 +48,9 @@ router.patch('/store/:num', async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
+        console.log('rrr', r);
         let [application] = await pool.execute(
-            `UPDATE application_form SET handler=?,application_category=?,project_name=?,cycle=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=? WHERE case_number=? && id=? && status_id=?`,
+            `UPDATE application_form SET handler=?,application_category=?,project_name=?,cycle=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,unit=? WHERE case_number=? && id=? && status_id=?`,
             [
                 r.handler,
                 r.application_category,
@@ -67,6 +68,7 @@ router.patch('/store/:num', async (req, res) => {
                 r.client_phone,
                 r.client_address,
                 r.remark,
+                r.unit,
                 numId,
                 r.id,
                 r.status_id,
@@ -253,8 +255,6 @@ router.post('/file/:num', async (req, res) => {
             }
         }
     }
-
-    res.send('ok2');
 });
 
 // 送出表單

@@ -16,7 +16,7 @@ async function getAllApp(req, res) {
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
 
-    console.log('ucc', minDate, maxDate);
+    // console.log('ucc',req.session.member);
 
     // 篩選
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
