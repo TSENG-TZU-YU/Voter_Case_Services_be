@@ -25,6 +25,7 @@ router.post('/', async (req, res) => {
             job: user.job,
             permissions_id: user.permissions_id,
             manage: user.manage,
+            handler: user.handler,
         };
 
         req.session.member = saveUser;
@@ -56,6 +57,7 @@ router.get('/auth', async (req, res) => {
             job: user.job,
             permissions_id: user.permissions_id,
             manage: user.manage,
+            handler: user.handler,
         };
 
         req.session.member = saveUser;
