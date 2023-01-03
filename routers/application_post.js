@@ -51,8 +51,8 @@ router.post('/', async (req, res) => {
             );
             for (let data of arr) {
                 let [application_detail] = await pool.execute(
-                    `INSERT INTO application_form_detail (case_number_id,requirement_name,directions ) VALUES (?,?,?)`,
-                    [r.number, data.title, data.text]
+                    `INSERT INTO application_form_detail (case_number_id,directions ) VALUES (?,?)`,
+                    [r.number, data.text]
                 );
             }
         }
