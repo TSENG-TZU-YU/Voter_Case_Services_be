@@ -16,7 +16,7 @@ async function getAllApp(req, res) {
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
 
-    console.log('ucc', minDate, maxDate);
+    // console.log('ucc',userId);
 
     // 篩選
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
@@ -193,7 +193,7 @@ async function getAssistantAllApp(req, res) {
     let allTotal = dataTotal.length;
     // 篩選總數
     let total = result.length;
-    // console.log('t', result);
+    // console.log('t', result,total);
 
     // select
 
@@ -520,10 +520,10 @@ async function handlePostNeed(req, res) {
     if (input === 'submit') {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-            [2, caseNum, id]
+            [4, caseNum, id]
         );
 
-        addHandleState(caseNum, user, 2, '', '', nowDate);
+        addHandleState(caseNum, user, 4, '', '', nowDate);
     }
 
     // console.log('addCalendar', states);
@@ -640,6 +640,7 @@ async function handleReceiveCase(req, res) {
 async function handleAcceptFinish(req, res) {
     // const caseNum = req.params.num;
     let [v] = req.body;
+    let user = req.session.member.name;
     // console.log('v', v);
 
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
@@ -648,7 +649,7 @@ async function handleAcceptFinish(req, res) {
         v.id,
     ]);
 
-    addHandleState(v.case_number, v.handler, 12, '', '', nowDate);
+    addHandleState(v.case_number, user, 12, '', '', nowDate);
 
     // console.log('addCalendar', states);
     res.json({ message: '已完成' });
@@ -657,6 +658,8 @@ async function handleAcceptFinish(req, res) {
 // user 拒絕完成
 async function handleRejectFinish(req, res) {
     let [v] = req.body;
+    let user = req.session.member.name;
+
     // console.log('v', v);
 
     let [newResult] = await pool.execute(
@@ -665,7 +668,7 @@ async function handleRejectFinish(req, res) {
         [5, v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, v.handler, 5, '', '', nowDate);
+    addHandleState(v.case_number, user, 5, '', '', nowDate);
 
     // console.log('addCalendar', states);
     res.json({ message: '拒絕接收成功' });
@@ -677,9 +680,9 @@ async function getHandleStatus(req, res) {
     // console.log('c', caseNum);
 
     let [result] = await pool.execute(
-        `SELECT r.content ,r.create_time ,h.name  
+        `SELECT r.content ,r.create_time ,u.name  
   FROM handler_remark r
-  JOIN handler h ON r.handler_id = h.id
+  JOIN users u ON r.handler_id = u.id
   WHERE r.case_number = ?
   ORDER BY r.create_time DESC
    `,
@@ -694,10 +697,10 @@ async function getHandleStatus(req, res) {
 async function postHandleStatus(req, res) {
     let handler = req.session.member.id;
     let v = req.body;
-    // console.log('first', v, handler);
+    console.log('first', v, handler);
     let [result] = await pool.execute(
         'INSERT INTO handler_remark (case_number, content, handler_id, create_time) VALUES (?,?,?,?)',
-        [v.caseNum, v.submitMessage, handler, nowDate]
+        [v.num, v.submitMessage, handler, nowDate]
     );
 
     res.json({ message: 'msg新增成功' });

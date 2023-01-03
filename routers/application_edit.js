@@ -189,7 +189,6 @@ router.post('/file/:num', async (req, res) => {
             // console.log('前端', v.file[i]);
             // console.log('資料庫', re);
         }
-        res.send('ok2');
     }
 
     //刪除後端檔案
