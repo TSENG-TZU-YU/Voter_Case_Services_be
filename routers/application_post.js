@@ -22,6 +22,13 @@ router.post('/', async (req, res) => {
             return d.number === r.category;
         });
 
+        let v = req.body;
+        if (v.unit === '') {
+            v.unit = req.session.member.applicant_unit;
+        } else {
+            v.unit = v.unit;
+        }
+
         if (checkData.length === 0) {
             let [application] = await pool.execute(
                 `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id,relation,litigant,litigant_phone,litigant_county_id,litigant_area_id,litigant_rimin,litigant_address, client_name,client_phone,client_address,remark,unit, create_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
