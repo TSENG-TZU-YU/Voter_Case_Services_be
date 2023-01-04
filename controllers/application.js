@@ -135,6 +135,8 @@ async function getAssistantAllApp(req, res) {
     let handleName = req.session.member.name;
     const permissions = req.session.member.permissions_id;
     let manage = req.session.member.manage;
+    let User = req.session.member.user;
+
     // console.log('ucc', permissions);
 
     // 篩選
@@ -156,22 +158,6 @@ async function getAssistantAllApp(req, res) {
     let userVal = user ? `AND (a.user_id = '${user}')` : '';
 
     let result = '';
-    // // user permissions=1
-    if (permissions === 1) {
-        [result] = await pool.execute(
-            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-      FROM application_form a
-      JOIN status s ON a.status_id = s.id
-      JOIN users u ON a.user_id = u.id
-      JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
-      GROUP BY d.case_number_id,s.name, u.applicant_unit
-      ORDER BY a.create_time DESC
-       `,
-            [userId, 0]
-        );
-    }
-
     // handler permissions=4
     if (permissions === 4 || manage === 1) {
         [result] = await pool.execute(
@@ -212,7 +198,7 @@ async function getAssistantAllApp(req, res) {
     }
     let counts = Object.entries(stCount).map(([state, count]) => ({ [`${state}`]: count }));
 
-    // console.log(statusResult);
+    console.log(statusResult);
 
     // all申請類別
     let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
@@ -258,16 +244,18 @@ async function getAssistantAllApp(req, res) {
     let handlerCounts = Object.entries(aCount).map(([state, count]) => ({ [`${state}`]: count }));
 
     // all處理人
-    let [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+    let [handlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = 1`);
+
+    // all user
     let [AllUserResult] = await pool.execute(`SELECT * FROM users`);
 
     // all申請人
     let userResult = '';
     if (userUnit !== '') {
-        [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ? AND applicant_unit = ?`, [
-            1,
-            userUnit,
-        ]);
+        [userResult] = await pool.execute(
+            `SELECT * FROM users WHERE (permissions_id = ? || User = ? )AND applicant_unit = ?`,
+            [1, 1, userUnit]
+        );
     }
 
     // count申請類別
@@ -282,7 +270,7 @@ async function getAssistantAllApp(req, res) {
     }
     let userCounts = Object.entries(userCount).map(([state, count]) => ({ [`${state}`]: count }));
     // console.log('ct', userCount);
-    // console.log('res', userCounts);
+    // console.log('res', handlerResult);
 
     res.json({
         pagination: {
@@ -392,13 +380,21 @@ async function getUserIdApp(req, res) {
     WHERE id NOT IN (1,2,4,10,11,12)`);
     // 可選擇handler
     // console.log('se', selectResult);
-    let [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?)`, [handler]);
+    let [handlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = ? AND name NOT IN (?)`, [
+        1,
+        handler,
+    ]);
 
     // file
     let [getFile] = await pool.execute(
         `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && a.valid=? && b.valid=?`,
         [numId, 0, 0]
     );
+
+    // 查看是否有處理情形
+    let [remarkResult] = await pool.execute(`SELECT * FROM handler_remark WHERE case_number IN (?)`, [numId]);
+
+    // console.log('addCalendar', remarkResult.length);
 
     res.json({
         result,
@@ -408,6 +404,7 @@ async function getUserIdApp(req, res) {
         selectResult,
         handlerResult,
         getFile,
+        remarkResult,
     });
 }
 
@@ -447,9 +444,9 @@ async function handlePost(req, res) {
         [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowDate]
     );
 
-    // console.log('new', newState)
+    // console.log('new', newState.id, v.transfer, v.caseNumber, v0.id)
     // 更新申請表單狀態
-    if (v.status !== '轉件中') {
+    if (v.status !== '處理人轉件中') {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
             [newState.id, v.caseNumber, v0.id]
@@ -680,7 +677,7 @@ async function getHandleStatus(req, res) {
     // console.log('c', caseNum);
 
     let [result] = await pool.execute(
-        `SELECT r.content ,r.create_time ,u.name  
+        `SELECT r.content ,r.create_time ,u.name
   FROM handler_remark r
   JOIN users u ON r.handler_id = u.id
   WHERE r.case_number = ?
@@ -689,8 +686,10 @@ async function getHandleStatus(req, res) {
         [caseNum]
     );
 
-    // console.log('addCalendar', result);
-    res.json({ result });
+    let [stResult] = await pool.execute(`SELECT status_id FROM application_form WHERE case_number = ?`, [caseNum]);
+    // console.log('d', stResult);
+
+    res.json({ result, stResult });
 }
 
 // post 案件處理情形
