@@ -32,15 +32,7 @@ router.get('/allPermissionsData', async (req, res) => {
     }
 });
 
-// //送出單位 http://localhost:3001/api/permissions
-// router.patch('/', async (req, res) => {
-//     try {
-//         let [result] = await pool.execute('SELECT * FROM users WHERE');
-//         res.json(result);
-//     } catch (err) {
-//         console.log(err);
-//     }
-// });
+
 
 // 匯出
 module.exports = router;

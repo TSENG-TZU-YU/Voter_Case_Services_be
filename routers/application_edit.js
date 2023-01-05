@@ -91,7 +91,7 @@ router.post('/file/:num', async (req, res) => {
     console.log('v', v.file === undefined);
 
     console.log('v.dbTime.length', v.dbTime.length);
-    console.log('v.file', typeof v.file);
+    console.log('v.file',  v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
         console.log('nid', v.dbTime.length);
@@ -257,7 +257,7 @@ router.post('/file/:num', async (req, res) => {
     }
 });
 
-// 送出表單
+// 刪除表單
 // http://localhost:3001/api/application_edit/deleteForm
 router.post('/deleteForm/:num', async (req, res) => {
     try {
