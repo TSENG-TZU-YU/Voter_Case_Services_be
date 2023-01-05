@@ -93,7 +93,7 @@ async function getAllApp(req, res) {
 // 總管理filter all data
 // /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, handler, user, userUnit } = req.query;
+    const { category, state, unit, minDate, maxDate, handler, user, userUnit, handlerUnit } = req.query;
     // console.log('c', category, state, unit, minDate, maxDate, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
@@ -106,7 +106,7 @@ async function getAssistantAllApp(req, res) {
     // 篩選
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
-    let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
+    let unitVal = unit ? `AND (a.unit = '${unit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
     // let finishVal = finish
@@ -185,7 +185,7 @@ async function getAssistantAllApp(req, res) {
     // count申請單位
     let unitTtl = [];
     for (let i = 0; i < result.length; i++) {
-        unitTtl.push(result[i].applicant_unit);
+        unitTtl.push(result[i].unit);
     }
 
     let uCount = {};
@@ -193,7 +193,7 @@ async function getAssistantAllApp(req, res) {
         uCount[a] = uCount[a] + 1 || 1;
     }
     let unitCounts = Object.entries(uCount).map(([state, count]) => ({ [`${state}`]: count }));
-    // console.log('ct', unitCounts);
+    console.log('ct', unitCounts);
 
     // count處理人
     let handlerTtl = [];
@@ -209,6 +209,13 @@ async function getAssistantAllApp(req, res) {
 
     // all處理人
     let [handlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = 1`);
+    let selHandlerResult = '';
+    if (handlerUnit !== '') {
+        [selHandlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = ? AND applicant_unit = ?`, [
+            1,
+            handlerUnit,
+        ]);
+    }
 
     // all user
     let [AllUserResult] = await pool.execute(`SELECT * FROM users`);
@@ -216,11 +223,7 @@ async function getAssistantAllApp(req, res) {
     // all申請人
     let userResult = '';
     if (userUnit !== '') {
-        [userResult] = await pool.execute(`SELECT * FROM users WHERE (manage = ? || user = ? )AND applicant_unit = ?`, [
-            1,
-            1,
-            userUnit,
-        ]);
+        [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ? AND applicant_unit = ?`, [1, userUnit]);
     }
 
     // count申請類別
@@ -254,6 +257,7 @@ async function getAssistantAllApp(req, res) {
         handlerResult,
         userResult,
         AllUserResult,
+        selHandlerResult,
     });
 }
 
