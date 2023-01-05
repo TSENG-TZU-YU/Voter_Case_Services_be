@@ -11,7 +11,7 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 
 // /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, order } = req.query;
+    const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     let Manage = req.session.member.manage;
@@ -25,6 +25,7 @@ async function getAllApp(req, res) {
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
     let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
+    let unitHVal = HUnit ? `AND (u.applicant_unit = '${HUnit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
 
@@ -55,7 +56,7 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
+      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY ${orderType}
        `,
@@ -93,7 +94,7 @@ async function getAllApp(req, res) {
 // 總管理filter all data
 // /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, handler, user, userUnit, handlerUnit } = req.query;
+    const { category, state, unit, minDate, maxDate, handler, user, userUnit, handlerUnit, appUnit } = req.query;
     // console.log('c', category, state, unit, minDate, maxDate, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
@@ -101,12 +102,13 @@ async function getAssistantAllApp(req, res) {
     let manage = req.session.member.manage;
     let User = req.session.member.user;
 
-    // console.log('ucc', permissions);
+    // console.log('ucc', appUnit);
 
     // 篩選
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
     let unitVal = unit ? `AND (a.unit = '${unit}')` : '';
+    let appUnitVal = appUnit ? `AND (u.applicant_unit = '${appUnit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
     // let finishVal = finish
@@ -130,7 +132,7 @@ async function getAssistantAllApp(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${handlerVal} ${userVal}
+        WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${handlerVal} ${userVal} ${appUnitVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY a.create_time DESC
          `
@@ -143,7 +145,7 @@ async function getAssistantAllApp(req, res) {
     let allTotal = dataTotal.length;
     // 篩選總數
     let total = result.length;
-    // console.log('t', result,total);
+    // console.log('t', result);
 
     // select
 
@@ -162,7 +164,7 @@ async function getAssistantAllApp(req, res) {
     }
     let counts = Object.entries(stCount).map(([state, count]) => ({ [`${state}`]: count }));
 
-    console.log(statusResult);
+    // console.log(statusResult);
 
     // all申請類別
     let [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
@@ -182,7 +184,7 @@ async function getAssistantAllApp(req, res) {
     // all申請單位
     let [unitResult] = await pool.execute(`SELECT * FROM unit`);
 
-    // count申請單位
+    // count處理人單位
     let unitTtl = [];
     for (let i = 0; i < result.length; i++) {
         unitTtl.push(result[i].unit);
@@ -193,7 +195,20 @@ async function getAssistantAllApp(req, res) {
         uCount[a] = uCount[a] + 1 || 1;
     }
     let unitCounts = Object.entries(uCount).map(([state, count]) => ({ [`${state}`]: count }));
-    console.log('ct', unitCounts);
+    // console.log('ct', unitCounts);
+
+    // count申請人單位
+    let unitAppTtl = [];
+    for (let i = 0; i < result.length; i++) {
+        unitAppTtl.push(result[i].unit);
+    }
+
+    let auCount = {};
+    for (let a of unitAppTtl) {
+        auCount[a] = auCount[a] + 1 || 1;
+    }
+    let unitAppCounts = Object.entries(auCount).map(([state, count]) => ({ [`${state}`]: count }));
+    // console.log('ct', unitAppCounts);
 
     // count處理人
     let handlerTtl = [];
@@ -249,6 +264,7 @@ async function getAssistantAllApp(req, res) {
             unitCounts,
             handlerCounts,
             userCounts,
+            unitAppCounts,
         },
         result,
         unitResult,
