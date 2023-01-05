@@ -14,7 +14,10 @@ async function getAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, order } = req.query;
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
-    const permissions = req.session.member.permissions_id;
+    let Manage = req.session.member.manage;
+    let User = req.session.member.user;
+    let Handler = req.session.member.handler;
+    let Director = req.session.member.director;
 
     // console.log('ucc',userId);
 
@@ -45,7 +48,7 @@ async function getAllApp(req, res) {
 
     let result = '';
     // user permissions=1
-    if (permissions === 1) {
+    if (User === 1) {
         [result] = await pool.execute(
             `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
       FROM application_form a 
@@ -60,39 +63,6 @@ async function getAllApp(req, res) {
         );
     }
 
-    // // handler permissions=3
-    // if (permissions === 3) {
-    //     [result] = await pool.execute(
-    //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-    //     FROM application_form a
-    //     JOIN status s ON a.status_id = s.id
-    //     JOIN users u ON a.user_id = u.id
-    //     JOIN application_form_detail d ON a.case_number = d.case_number_id
-    //     WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
-    //     GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
-    //     ORDER BY ${orderType}
-    //      `,
-    //         [handleName, '', handleName]
-    //     );
-    // }
-
-    // // TODO:未改
-    // // handler permissions=4
-    // if (permissions === 4 ) {
-    //     [result] = await pool.execute(
-    //         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-    //     FROM application_form a
-    //     JOIN status s ON a.status_id = s.id
-    //     JOIN users u ON a.user_id = u.id
-    //     JOIN application_form_detail d ON a.case_number = d.case_number_id
-    //     WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}
-    //     GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
-    //     ORDER BY ${orderType}
-    //      `,
-    //         [handleName, '', handleName]
-    //     );
-    // }
-
     // all申請單位
     [unitResult] = await pool.execute(`SELECT * FROM unit`);
 
@@ -106,17 +76,11 @@ async function getAllApp(req, res) {
     [handlerResult] = await pool.execute(`SELECT * FROM handler`);
 
     // all申請人
-    [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+    [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ?`, [1]);
 
     // console.log('res', result);
 
     res.json({
-        // pagination: {
-        //   total,
-        //   perPage,
-        //   page,
-        //   lastPage,
-        // },
         result,
         unitResult,
         statusResult,
@@ -159,7 +123,7 @@ async function getAssistantAllApp(req, res) {
 
     let result = '';
     // handler permissions=4
-    if (permissions === 4 || manage === 1) {
+    if (manage === 1) {
         [result] = await pool.execute(
             `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
         FROM application_form a 
@@ -252,10 +216,11 @@ async function getAssistantAllApp(req, res) {
     // all申請人
     let userResult = '';
     if (userUnit !== '') {
-        [userResult] = await pool.execute(
-            `SELECT * FROM users WHERE (permissions_id = ? || User = ? )AND applicant_unit = ?`,
-            [1, 1, userUnit]
-        );
+        [userResult] = await pool.execute(`SELECT * FROM users WHERE (manage = ? || user = ? )AND applicant_unit = ?`, [
+            1,
+            1,
+            userUnit,
+        ]);
     }
 
     // count申請類別
@@ -308,12 +273,6 @@ async function getCaseHistory(req, res) {
     );
 
     res.json({
-        // pagination: {
-        //   total,
-        //   perPage,
-        //   page,
-        //   lastPage,
-        // },
         result,
     });
 }
@@ -323,14 +282,10 @@ async function getUserIdApp(req, res) {
     const { caseId } = req.body;
     const numId = req.params.num;
     const handler = req.session.member.name;
-    const permissions = req.session.member.permissions_id;
 
     // console.log(numId, handler, permissions, caseId);
 
-    // let result = '';
-    //表單資料  p=3
-    // if (permissions === 3) {
-    [result] = await pool.execute(
+    let [result] = await pool.execute(
         `SELECT a.*, s.name, u.applicant_unit
     FROM application_form a
     JOIN status s ON a.status_id = s.id
@@ -338,18 +293,6 @@ async function getUserIdApp(req, res) {
     WHERE a.case_number = ? AND a.id = ?`,
         [numId, caseId]
     );
-    // }
-
-    // if (permissions === 1) {
-    //     [result] = await pool.execute(
-    //         `SELECT a.*, s.name, u.applicant_unit
-    // FROM application_form a
-    // JOIN status s ON a.status_id = s.id
-    // JOIN users u ON a.user_id = u.id
-    // WHERE a.case_number = ? AND a.id = ? `,
-    //         [numId, caseId]
-    //     );
-    // }
 
     //需求資料
     let [needResult] = await pool.execute(
@@ -763,8 +706,6 @@ module.exports = {
     handlePost,
     handlePostNeed,
     getCaseHistory,
-    // handleAcceptNeed,
-    // handleChangeState,
     handleCancleAcc,
     handlePostFile,
     handleAcceptCase,

@@ -5,8 +5,8 @@ async function getAllAppHandler(req, res) {
     const { category, state, unit, minDate, maxDate, order } = req.query;
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
-    const permissions = req.session.member.permissions_id;
-    let manage = req.session.member.manage;
+    let Manage = req.session.member.manage;
+    let Handler = req.session.member.handler;
 
     console.log('ucc', minDate, maxDate);
 
@@ -38,7 +38,7 @@ async function getAllAppHandler(req, res) {
     let result = '';
 
     // handler permissions=3
-    if (permissions === 3) {
+    if (Handler === 1) {
         [result] = await pool.execute(
             `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
         FROM application_form a 
@@ -55,7 +55,7 @@ async function getAllAppHandler(req, res) {
 
     // TODO:未改
     // handler permissions=4
-    if (permissions === 4 || manage === 1) {
+    if (Manage === 1) {
         [result] = await pool.execute(
             `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
         FROM application_form a 
