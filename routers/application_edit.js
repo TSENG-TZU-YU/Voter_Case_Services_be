@@ -13,12 +13,10 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,project_name=?,cycle=?,status_id=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,unit=?  WHERE case_number=? && id=? `,
+            `UPDATE application_form SET  handler=?,application_category=?,status_id=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,unit=?  WHERE case_number=? && id=? `,
             [
                 r.handler,
                 r.application_category,
-                r.project_name,
-                r.cycle,
                 r.status_id,
                 r.create_time,
                 r.relation,
@@ -51,12 +49,10 @@ router.patch('/store/:num', async (req, res) => {
         let r = req.body;
         console.log('rrr', r);
         let [application] = await pool.execute(
-            `UPDATE application_form SET handler=?,application_category=?,project_name=?,cycle=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,unit=? WHERE case_number=? && id=? && status_id=?`,
+            `UPDATE application_form SET handler=?,application_category=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,unit=? WHERE case_number=? && id=? && status_id=?`,
             [
                 r.handler,
                 r.application_category,
-                r.project_name,
-                r.cycle,
                 r.create_time,
                 r.relation,
                 r.litigant,
@@ -91,7 +87,7 @@ router.post('/file/:num', async (req, res) => {
     console.log('v', v.file === undefined);
 
     console.log('v.dbTime.length', v.dbTime.length);
-    console.log('v.file',  v.file);
+    console.log('v.file', v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
         console.log('nid', v.dbTime.length);

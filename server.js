@@ -2,12 +2,33 @@ const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 require('dotenv').config();
-const port = process.env.SERVER_PORT || 3001;
-const pool = require('./utils/db.js');
+
+const pool = require("./utils/db.js");
 //文件上傳
-const fileUpload = require('express-fileupload');
-const path = require('path');
-const cors = require('cors');
+const fileUpload = require("express-fileupload");
+const path = require("path");
+const cors = require("cors");
+
+//正式機上所需443
+const https = require('https');
+const fs = require('fs');
+
+const privateKey = fs.readFileSync(path.join(__dirname, 'bin/ssl/private.key'));
+const certificate = fs.readFileSync(
+  path.join(__dirname, 'bin/ssl/certificate.crt')
+);
+const cred = { key: privateKey, cert: certificate };
+
+const server =
+  process.env.STATUS === 'prod'
+    ? https.createServer(cred, app)
+    : require('http').createServer(app);
+
+
+
+//讀取靜態資源
+app.use(express.static(path.join(__dirname, "/public")));
+
 app.use(express.json());
 const corsOptions = {
     credentials: true,
@@ -111,8 +132,13 @@ app.use('/api/1.0/applicationData', applicationData);
 const application_handler = require('./routers/application_handler');
 app.use('/api/1.0/handler/applicationData', application_handler);
 
+// 處理react打包後的檔案，如果前面get請求
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+const port = process.env.SERVER_PORT || 3001;
 // 啟動 server，並且開始 listen 一個 port
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`server start at ${port}`);
 });
 // app.listen(4000);

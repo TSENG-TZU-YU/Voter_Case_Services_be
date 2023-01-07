@@ -1,5 +1,8 @@
 /node_modules
 .env
+.env2
 sessions
 .vscode
 uploads
+/public/*
+bin
