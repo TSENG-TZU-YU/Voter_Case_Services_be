@@ -6,6 +6,7 @@ const pool = require('../utils/db');
 // 處理人
 // http://localhost:3001/api/application_get/handler
 router.post('/handler', async (req, res) => {
+    console.log('handler');
     let v = req.body;
     if (v.unit === '') {
         v.unit = req.session.member.applicant_unit;
@@ -13,6 +14,7 @@ router.post('/handler', async (req, res) => {
         v.unit = v.unit;
     }
     let [result] = await pool.execute(`SELECT * FROM users WHERE applicant_unit=? && handler=?`, [v.unit, 1]);
+ 
     res.json(result);
 });
 
@@ -25,10 +27,10 @@ router.get('/category', async (req, res) => {
 
 // 週期
 // http://localhost:3001/api/application_get/cycle
-router.get('/cycle', async (req, res) => {
-    let [result] = await pool.execute(`SELECT * FROM cycle`);
-    res.json(result);
-});
+// router.get('/cycle', async (req, res) => {
+//     let [result] = await pool.execute(`SELECT * FROM cycle`);
+//     res.json(result);
+// });
 
 // 單位
 // http://localhost:3001/api/application_get/unit

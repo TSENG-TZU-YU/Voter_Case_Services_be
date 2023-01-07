@@ -8,7 +8,7 @@ let pool = mysql
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        connectionLimit: 10,
+        connectionLimit: 100,
         // 請保持 date 是 string，不要轉成 js 的 date 物件
         dateStrings: true,
     })
