@@ -6,7 +6,8 @@ const pool = require('../utils/db');
 // 處理人
 // http://localhost:3001/api/application_get/handler
 router.post('/handler', async (req, res) => {
-    console.log('handler');
+    // console.count('handler', req.session.member.applicant_unit);
+    console.log('handler', req.session);
     let v = req.body;
     if (v.unit === '') {
         v.unit = req.session.member.applicant_unit;
@@ -14,7 +15,7 @@ router.post('/handler', async (req, res) => {
         v.unit = v.unit;
     }
     let [result] = await pool.execute(`SELECT * FROM users WHERE applicant_unit=? && handler=?`, [v.unit, 1]);
- 
+    // console.log('handler', result);
     res.json(result);
 });
 

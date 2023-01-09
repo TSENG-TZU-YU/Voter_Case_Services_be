@@ -3,31 +3,11 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 
-const pool = require("./utils/db.js");
+const pool = require('./utils/db.js');
 //文件上傳
-const fileUpload = require("express-fileupload");
-const path = require("path");
-const cors = require("cors");
-
-//正式機上所需443
-const https = require('https');
-const fs = require('fs');
-
-const privateKey = fs.readFileSync(path.join(__dirname, 'bin/ssl/private.key'));
-const certificate = fs.readFileSync(
-  path.join(__dirname, 'bin/ssl/certificate.crt')
-);
-const cred = { key: privateKey, cert: certificate };
-
-const server =
-  process.env.STATUS === 'prod'
-    ? https.createServer(cred, app)
-    : require('http').createServer(app);
-
-
-
-//讀取靜態資源
-app.use(express.static(path.join(__dirname, "/public")));
+const fileUpload = require('express-fileupload');
+const path = require('path');
+const cors = require('cors');
 
 app.use(express.json());
 const corsOptions = {
@@ -36,6 +16,19 @@ const corsOptions = {
     exposedHeaders: ['Content-Disposition'],
 };
 app.use(cors(corsOptions));
+
+//正式機上所需443
+const https = require('https');
+const fs = require('fs');
+
+const privateKey = fs.readFileSync(path.join(__dirname, 'bin/ssl/private.key'));
+const certificate = fs.readFileSync(path.join(__dirname, 'bin/ssl/certificate.crt'));
+const cred = { key: privateKey, cert: certificate };
+
+const server = process.env.STATUS === 'prod' ? https.createServer(cred, app) : require('http').createServer(app);
+
+//讀取靜態資源
+app.use(express.static(path.join(__dirname, '/public')));
 
 // const cookieParser = require('cookie-parser');
 // app.use(cookieParser());
@@ -51,10 +44,10 @@ const expressSession = require('express-session');
 var FileStore = require('session-file-store')(expressSession);
 app.use(
     expressSession({
-        store: new FileStore({
-            // session 儲存的路徑
-            path: path.join(__dirname, '.', 'sessions'),
-        }),
+        // store: new FileStore({
+        //     // session 儲存的路徑
+        //     path: path.join(__dirname, '.', 'sessions'),
+        // }),
         secret: process.env.SESSION_SECRET,
         // 如果 session 沒有改變的話，要不要重新儲存一次？
         resave: false,
@@ -134,7 +127,7 @@ app.use('/api/1.0/handler/applicationData', application_handler);
 
 // 處理react打包後的檔案，如果前面get請求
 app.get('/*', function (req, res) {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 const port = process.env.SERVER_PORT || 3001;
 // 啟動 server，並且開始 listen 一個 port
