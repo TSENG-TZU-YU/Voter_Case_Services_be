@@ -25,7 +25,7 @@ async function getAllApp(req, res) {
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
     let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
-    let unitHVal = HUnit ? `AND (u.applicant_unit = '${HUnit}')` : '';
+    let unitHVal = HUnit ? `AND (a.unit = '${HUnit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
 
@@ -56,11 +56,11 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? AND a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
+      WHERE a.user_id = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY ${orderType}
        `,
-            [userId, 0]
+            [userId]
         );
     }
 
@@ -79,7 +79,7 @@ async function getAllApp(req, res) {
     // all申請人
     [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ?`, [1]);
 
-    // console.log('res', result);
+    console.log('res', result);
 
     res.json({
         result,
