@@ -7,14 +7,15 @@ async function getAllAppHandler(req, res) {
     let handleName = req.session.member.name;
     let Manage = req.session.member.manage;
     let Handler = req.session.member.handler;
+    let HandlerUnit = req.session.member.applicant_unit;
 
-    // console.log('ucc', minDate, maxDate);
+    // console.log('ucc', Manage);
 
     // 篩選
     let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
     let stateVal = state ? `AND (a.status_id = ${state})` : '';
-    let unitVal = unit ? `AND (a.unit = '${unit}')` : '';
-    let unitHVal = HUnit ? `AND (u.applicant_unit = '${HUnit}')` : '';
+    let unitHVal = HUnit ? `AND (a.unit = '${HUnit}')` : '';
+    let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
     let dateVal =
         minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
 
@@ -41,16 +42,16 @@ async function getAllAppHandler(req, res) {
     // handler permissions=3
     if (Handler === 1) {
         [result] = await pool.execute(
-            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
-        FROM application_form a 
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou
+        FROM application_form a
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
+        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) AND(a.unit = ?) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY ${orderType}
          `,
-            [handleName, '', handleName]
+            [handleName, '', handleName, HandlerUnit]
         );
     }
 
@@ -66,8 +67,7 @@ async function getAllAppHandler(req, res) {
         WHERE (status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY ${orderType}
-         `,
-            [handleName, '', handleName]
+         `
         );
     }
 
@@ -86,7 +86,7 @@ async function getAllAppHandler(req, res) {
     // all申請人
     [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
 
-    // console.log('res', result);
+    // console.log('res', unitResult);
 
     res.json({
         result,
