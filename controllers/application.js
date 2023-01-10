@@ -79,8 +79,6 @@ async function getAllApp(req, res) {
     // all申請人
     [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ?`, [1]);
 
-    console.log('res', result);
-
     res.json({
         result,
         unitResult,
