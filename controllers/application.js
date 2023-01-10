@@ -1,6 +1,5 @@
 const pool = require('../utils/db');
 const moment = require('moment');
-let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
 // 增加狀態
 async function addHandleState(caseNum, handler, state, remark, estTime, createTime) {
     let [postResult] = await pool.execute(
@@ -391,7 +390,8 @@ async function handlePost(req, res) {
     // console.log(req.body[0]);
     let v = req.body;
     let v0 = req.body[0];
-
+    let nowD = moment().format('YYYY-MM-DD HH:mm:ss');
+    console.log('object', nowD);
     // console.log('all', v.transfer);
     // console.log('all0', v0);
 
@@ -404,7 +404,7 @@ async function handlePost(req, res) {
     // 加入審核狀態
     let [result] = await pool.execute(
         'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-        [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowDate]
+        [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowD]
     );
 
     // console.log('new', newState.id, v.transfer, v.caseNumber, v0.id)
@@ -456,6 +456,7 @@ async function handlePostNeed(req, res) {
     // console.log('1', req.body[3]);
     // console.log('2', req.body);
     // console.log('3',req.body[2])
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
 
     let [delResult] = await pool.execute('DELETE FROM application_form_detail WHERE case_number_id = ? ', [caseNum]);
 
@@ -511,7 +512,7 @@ async function handleCancleAcc(req, res) {
     const caseNum = req.params.num;
     let user = req.body.user;
     let id = req.body.id;
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log(caseNum, user, id);
 
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
@@ -532,7 +533,7 @@ async function handleFinish(req, res) {
     let id = req.body.caseId;
     let handler = req.session.member.name;
     // console.log(caseNum, id);
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [11, id]);
 
     addHandleState(caseNum, handler, 11, '', '', nowDate);
@@ -545,12 +546,14 @@ async function handleFinish(req, res) {
 async function handleAcceptCase(req, res) {
     // const caseNum = req.params.num;
     let handleName = req.session.member.name;
+    let handleUnit = req.session.member.applicant_unit;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [v] = req.body;
     // console.log('v', v);
 
     let [newResult] = await pool.execute(
-        'UPDATE application_form SET status_id=?, handler = ?, sender = ? WHERE case_number = ? AND id = ?',
-        [4, handleName, '', v.case_number, v.id]
+        'UPDATE application_form SET status_id=?, handler = ?, sender = ?, unit = ? WHERE case_number = ? AND id = ?',
+        [4, handleName, '', handleUnit, v.case_number, v.id]
     );
 
     addHandleState(v.case_number, handleName, 4, `接收人: ${handleName}`, '', nowDate);
@@ -563,7 +566,7 @@ async function handleAcceptCase(req, res) {
 async function handleRejectCase(req, res) {
     let [v] = req.body;
     // console.log('v', v);
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [newResult] = await pool.execute(
         `UPDATE application_form SET status_id=?, handler = ?, sender = ? 
         WHERE case_number = ? AND  id = ? `,
@@ -582,7 +585,7 @@ async function handleReceiveCase(req, res) {
     let caseNum = req.params.num;
     let newHandler = req.session.member.name;
     // console.log('v', v.caseId, caseNum, handler);
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [result] = await pool.execute(
         `UPDATE application_form SET status_id = ? , handler = ?
         WHERE case_number = ? AND id = ?`,
@@ -602,7 +605,7 @@ async function handleAcceptFinish(req, res) {
     let [v] = req.body;
     let user = req.session.member.name;
     // console.log('v', v);
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
         12,
         v.case_number,
@@ -619,7 +622,7 @@ async function handleAcceptFinish(req, res) {
 async function handleRejectFinish(req, res) {
     let [v] = req.body;
     let user = req.session.member.name;
-
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('v', v);
 
     let [newResult] = await pool.execute(
@@ -659,6 +662,7 @@ async function getHandleStatus(req, res) {
 async function postHandleStatus(req, res) {
     let handler = req.session.member.id;
     let v = req.body;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     console.log('first', v, handler);
     let [result] = await pool.execute(
         'INSERT INTO handler_remark (case_number, content, handler_id, create_time) VALUES (?,?,?,?)',

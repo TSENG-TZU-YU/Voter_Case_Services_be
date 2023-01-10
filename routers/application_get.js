@@ -7,7 +7,7 @@ const pool = require('../utils/db');
 // http://localhost:3001/api/application_get/handler
 router.post('/handler', async (req, res) => {
     // console.count('handler', req.session.member.applicant_unit);
-    console.log('handler', req.session);
+    // console.log('handler', req.session);
     let v = req.body;
     if (v.unit === '') {
         v.unit = req.session.member.applicant_unit;
