@@ -401,8 +401,8 @@ async function handlePost(req, res) {
 
     // 加入審核狀態
     let [result] = await pool.execute(
-        'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-        [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowD]
+        'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time,up_files_time,receive_files_time,user_id) VALUES (?,?,?,?,?,?,?,?)',
+        [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowD, null, null, 0]
     );
 
     // console.log('new', newState.id, v.transfer, v.caseNumber, v0.id)
