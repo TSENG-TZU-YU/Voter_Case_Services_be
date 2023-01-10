@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
         if (users.length == 0) {
             return res.status(401).json({ message: '員編或密碼錯誤' });
         }
-        console.log('rb', rb);
+        // console.log('rb', rb);
         let user = users[0];
         let saveUser = {
             id: user.id,

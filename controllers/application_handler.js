@@ -50,11 +50,11 @@ async function getAllAppHandler(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.handler = ? OR a.sender = ?) AND (status_id NOT IN (1)) AND(a.unit = ?) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
+        WHERE (a.handler = ? OR a.sender = ? OR a.unit = ?) AND (status_id NOT IN (1))${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY ${orderType}
          `,
-            [handleName, '', handleName, HandlerUnit]
+            [handleName, handleName, HandlerUnit]
         );
     }
 
