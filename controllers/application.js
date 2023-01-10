@@ -460,8 +460,8 @@ async function handlePostNeed(req, res) {
 
     for (let i = 0; i < v.length; i++) {
         let [postResult] = await pool.execute(
-            'INSERT INTO application_form_detail (case_number_id, requirement_name, directions, checked, valid) VALUES (?,?,?,?,?)',
-            [v[i].case_number_id, v[i].requirement_name, v[i].directions, 0, 1]
+            'INSERT INTO application_form_detail (case_number_id, directions, checked, valid) VALUES (?,?,?,?)',
+            [v[i].case_number_id, v[i].directions, 0, 1]
         );
     }
 
