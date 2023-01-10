@@ -52,7 +52,7 @@ router.patch('/patchStatus/:num', async (req, res) => {
         5,
         numId,
     ]);
-
+    console.log('patchStatus');
     res.json(getUserTotalFile);
 });
 
