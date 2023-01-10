@@ -469,8 +469,8 @@ async function handlePostNeed(req, res) {
 
     if (input === 'finish') {
         let [updateResult] = await pool.execute(
-            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-            [5, caseNum, id]
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ? AND checked = ? AND vaild = ?',
+            [5, caseNum, id, 0, 0]
         );
 
         addHandleState(caseNum, user, 5, '', '', nowDate);
@@ -478,8 +478,8 @@ async function handlePostNeed(req, res) {
 
     if (input === 'submit') {
         let [updateResult] = await pool.execute(
-            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-            [4, caseNum, id]
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ? AND checked = ? AND vaild = ?',
+            [4, caseNum, id, 0, 0]
         );
 
         addHandleState(caseNum, user, 4, '', '', nowDate);
