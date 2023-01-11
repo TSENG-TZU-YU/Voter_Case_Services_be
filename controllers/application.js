@@ -390,8 +390,8 @@ async function handlePost(req, res) {
     let v0 = req.body[0];
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('object', nowD);
-    console.log('all', v);
-    console.log('all0', v0);
+    // console.log('all', v.finishTime === '');
+    // console.log('all0', nowDate);
 
     // 取得更新狀態id
     let [states] = await pool.execute('SELECT * FROM status');
@@ -400,10 +400,17 @@ async function handlePost(req, res) {
     });
 
     // 加入審核狀態
-    let [result] = await pool.execute(
-        'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time, create_time, up_files_time,receive_files_time, user_id) VALUES (?,?,?,?,?,?,?,?,?)',
-        [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowDate, null, null, 0]
-    );
+    if (v.finishTime !== '') {
+        let [result] = await pool.execute(
+            'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time, create_time, up_files_time,receive_files_time, user_id) VALUES (?,?,?,?,?,?,?,?,?)',
+            [v.caseNumber, v.handler, newState.id, v.remark, v.finishTime, nowDate, null, null, 0]
+        );
+    } else {
+        let [result] = await pool.execute(
+            'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time, create_time, up_files_time,receive_files_time, user_id) VALUES (?,?,?,?,?,?,?,?,?)',
+            [v.caseNumber, v.handler, newState.id, v.remark, null, nowDate, null, null, 0]
+        );
+    }
 
     // console.log('new', newState.id, v.transfer, v.caseNumber, v0.id)
     // 更新申請表單狀態
@@ -469,20 +476,20 @@ async function handlePostNeed(req, res) {
 
     if (input === 'finish') {
         let [updateResult] = await pool.execute(
-            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ? AND checked = ? AND vaild = ?',
-            [5, caseNum, id, 0, 0]
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+            [5, caseNum, id]
         );
 
-        addHandleState(caseNum, user, 5, '', '', nowDate, null, null, 0);
+        addHandleState(caseNum, user, 5, '', null, nowDate, null, null, 0);
     }
 
     if (input === 'submit') {
         let [updateResult] = await pool.execute(
-            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ? AND checked = ? AND vaild = ?',
-            [4, caseNum, id, 0, 0]
+            'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+            [4, caseNum, id]
         );
 
-        addHandleState(caseNum, user, 4, '', '', nowDate, null, null, 0);
+        addHandleState(caseNum, user, 4, '', null, nowDate, null, null, 0);
     }
 
     // console.log('addCalendar', states);
@@ -519,7 +526,7 @@ async function handleCancleAcc(req, res) {
         id,
     ]);
 
-    addHandleState(caseNum, user, 10, '', '', nowDate, null, null, 0);
+    addHandleState(caseNum, user, 10, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -534,7 +541,7 @@ async function handleFinish(req, res) {
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [11, id]);
 
-    addHandleState(caseNum, handler, 11, '', '', nowDate, null, null, 0);
+    addHandleState(caseNum, handler, 11, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -554,7 +561,7 @@ async function handleAcceptCase(req, res) {
         [4, handleName, '', handleUnit, v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, handleName, 4, `接收人: ${handleName}`, '', nowDate, null, null, 0);
+    addHandleState(v.case_number, handleName, 4, `接收人: ${handleName}`, null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: v.sender });
@@ -571,7 +578,7 @@ async function handleRejectCase(req, res) {
         [4, v.handler, '', v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, v.handler, 4, '', '', nowDate, null, null, 0);
+    addHandleState(v.case_number, v.handler, 4, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -590,7 +597,7 @@ async function handleReceiveCase(req, res) {
         [4, newHandler, caseNum, v.caseId]
     );
 
-    addHandleState(caseNum, newHandler, 4, '', '', nowDate, null, null, 0);
+    addHandleState(caseNum, newHandler, 4, '', null, nowDate, null, null, 0);
     // caseNum, handler, state, remark, estTime, createTime
 
     // console.log('addCalendar', states);
@@ -610,7 +617,7 @@ async function handleAcceptFinish(req, res) {
         v.id,
     ]);
 
-    addHandleState(v.case_number, user, 12, '', '', nowDate, null, null, 0);
+    addHandleState(v.case_number, user, 12, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '已完成' });
@@ -629,7 +636,7 @@ async function handleRejectFinish(req, res) {
         [5, v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, user, 5, '', '', nowDate, null, null, 0);
+    addHandleState(v.case_number, user, 5, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '拒絕接收成功' });
