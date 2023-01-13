@@ -46,11 +46,9 @@ router.get('/auth', async (req, res) => {
             return res.status(401).json({ message: '尚未登入' });
         }
 
-        // 更新session
+        // 更新sessiona
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
-        if (users.length == 0) {
-            return res.status(401).json({ message: '員編或密碼錯誤' });
-        }
+
         let user = users[0];
         let saveUser = {
             id: user.id,

@@ -13,13 +13,14 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,status_id=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? `,
+            `UPDATE application_form SET  handler=?,application_category=?,status_id=?,create_time=?,relation=?,phoneCheck=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? `,
             [
                 r.handler,
                 r.application_category,
                 r.status_id,
                 r.create_time,
                 r.relation,
+                r.phoneCheck,
                 r.litigant,
                 r.litigant_phone,
                 r.litigant_county_id,
@@ -28,6 +29,9 @@ router.patch('/submit/:num', async (req, res) => {
                 r.litigant_address,
                 r.client_name,
                 r.client_phone,
+                r.client_county,
+                r.client_area,
+                r.client_rimin,
                 r.client_address,
                 r.remark,
                 '',
@@ -48,14 +52,15 @@ router.patch('/store/:num', async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
-        console.log('rrr', r);
+
         let [application] = await pool.execute(
-            `UPDATE application_form SET handler=?,application_category=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? && status_id=?`,
+            `UPDATE application_form SET handler=?,application_category=?,create_time=?,relation=?,phoneCheck=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? && status_id=?`,
             [
                 r.handler,
                 r.application_category,
                 r.create_time,
                 r.relation,
+                r.phoneCheck,
                 r.litigant,
                 r.litigant_phone,
                 r.litigant_county_id,
@@ -64,6 +69,9 @@ router.patch('/store/:num', async (req, res) => {
                 r.litigant_address,
                 r.client_name,
                 r.client_phone,
+                r.client_county,
+                r.client_area,
+                r.client_rimin,
                 r.client_address,
                 r.remark,
                 '',
@@ -95,14 +103,13 @@ router.post('/file/:num', async (req, res) => {
         console.log('nid', v.dbTime.length);
 
         let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
-        console.log('res', result);
 
         for (let i = 0; i < result.length; i++) {
             let re = result[i].file_no;
-            console.log('re', i, re);
+            // console.log('re', i, re);
             //第一個檔案被改成另一個檔案 v.file = undefined
             if (v.file !== 'undefined' && v.file !== undefined) {
-                console.log('tttt', typeof v.file);
+                // console.log('tttt', typeof v.file); 陣列只有一筆時會變成字串
                 // 用型態分辨
                 if (typeof v.file === 'string') {
                     const isAsset = [v.file].some((item) => item === re);
@@ -111,17 +118,13 @@ router.post('/file/:num', async (req, res) => {
                             `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
                             [v.create_time, numId]
                         );
-                        console.log('true', result[i].file_no);
                     } else {
                         let [deletFile] = await pool.execute(
                             `DELETE FROM upload_files_detail
                             WHERE case_number_id=? && file_no=?`,
                             [numId, result[i].file_no]
                         );
-                        console.log('false', result[i].file_no);
                     }
-
-                    console.log('isAsset', isAsset);
                 } else {
                     const isAsset = v.file.some((item) => item === re);
                     if (isAsset === true) {
@@ -129,17 +132,13 @@ router.post('/file/:num', async (req, res) => {
                             `UPDATE upload_files_detail SET  create_time=? WHERE case_number_id=? `,
                             [v.create_time, numId]
                         );
-                        console.log('true', result[i].file_no);
                     } else {
                         let [deletFile] = await pool.execute(
                             `DELETE FROM upload_files_detail
                             WHERE case_number_id=? && file_no=?`,
                             [numId, result[i].file_no]
                         );
-                        console.log('false', result[i].file_no);
                     }
-
-                    console.log('isAsset', isAsset);
                 }
             } else {
                 console.log('d', 'del');
@@ -266,6 +265,23 @@ router.post('/deleteForm/:num', async (req, res) => {
             `DELETE FROM application_form   WHERE case_number=? && id=? && status_id=?`,
             [numId, r.id, r.status_id]
         );
+        res.send('ok2');
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// 更改密碼
+// http://localhost:3001/api/application_edit/passWord
+router.patch('/passWord', async (req, res) => {
+    try {
+        let r = req.body;
+        console.log('rrr', r);
+        let [application] = await pool.execute(`UPDATE users SET password=? WHERE id=? && staff_code=?`, [
+            r.password,
+            req.session.member.id,
+            req.session.member.staff_code,
+        ]);
         res.send('ok2');
     } catch (err) {
         console.log(err);

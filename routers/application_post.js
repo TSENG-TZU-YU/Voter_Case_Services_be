@@ -28,11 +28,10 @@ router.post('/', async (req, res) => {
         } else {
             v.unit = v.unit;
         }
-        console.log('post');
 
         if (checkData.length === 0) {
             let [application] = await pool.execute(
-                `INSERT INTO application_form (case_number,user,user_id,handler,application_category,status_id,relation,litigant,litigant_phone,litigant_county_id,litigant_area_id,litigant_rimin,litigant_address, client_name,client_phone,client_address,remark,sender,unit, create_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                `INSERT INTO application_form (case_number,user,user_id,handler,application_category,status_id,relation,phoneCheck,litigant,litigant_phone,litigant_county_id,litigant_area_id,litigant_rimin,litigant_address, client_name,client_phone,client_county,client_area,client_rimin,client_address,remark,sender,unit, create_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                     r.number,
                     r.user,
@@ -41,6 +40,7 @@ router.post('/', async (req, res) => {
                     newState.name,
                     r.status,
                     r.relation,
+                    r.phoneCheck,
                     r.litigant,
                     r.litigantPhone,
                     r.litigantCounty,
@@ -49,6 +49,9 @@ router.post('/', async (req, res) => {
                     r.litigantAddress,
                     r.client,
                     r.clientPhone,
+                    r.clientCounty,
+                    r.clientArea,
+                    r.clientRimin,
                     r.clientAddress,
                     r.remark,
                     '',
