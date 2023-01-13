@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
         ]);
 
         // 轉換類型名稱
-        let [category] = await pool.execute('SELECT * FROM application_category');
+        let [category] = await pool.execute('SELECT * FROM application_source');
         let [newState] = category.filter((d) => {
             return d.number === r.category;
         });

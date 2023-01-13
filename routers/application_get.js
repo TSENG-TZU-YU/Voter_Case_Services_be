@@ -20,13 +20,18 @@ router.post('/handler', async (req, res) => {
     }
 });
 
-// 申請表類別
+// 案件來源
+// http://localhost:3001/api/application_get/source
+router.get('/source', async (req, res) => {
+    let [result] = await pool.execute(`SELECT * FROM application_source`);
+    res.json(result);
+});
+// 案件類別
 // http://localhost:3001/api/application_get/category
 router.get('/category', async (req, res) => {
     let [result] = await pool.execute(`SELECT * FROM application_category`);
     res.json(result);
 });
-
 // 週期
 // http://localhost:3001/api/application_get/cycle
 // router.get('/cycle', async (req, res) => {
