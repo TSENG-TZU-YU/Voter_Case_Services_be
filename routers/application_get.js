@@ -6,14 +6,18 @@ const pool = require('../utils/db');
 // 處理人
 // http://localhost:3001/api/application_get/handler
 router.post('/handler', async (req, res) => {
-    let v = req.body;
-    if (v.unit === '') {
-        v.unit = req.session.member.applicant_unit;
-    } else {
-        v.unit = v.unit;
+    try {
+        let v = req.body;
+        if (v.unit === '') {
+            v.unit = req.session.member.applicant_unit;
+        } else {
+            v.unit = v.unit;
+        }
+        let [result] = await pool.execute(`SELECT * FROM users WHERE applicant_unit=? && handler=?`, [v.unit, 1]);
+        res.json(result);
+    } catch (err) {
+        console.log('單位錯誤', err);
     }
-    let [result] = await pool.execute(`SELECT * FROM users WHERE applicant_unit=? && handler=?`, [v.unit, 1]);
-    res.json(result);
 });
 
 // 申請表類別
@@ -33,8 +37,12 @@ router.get('/category', async (req, res) => {
 // 單位
 // http://localhost:3001/api/application_get/unit
 router.get('/unit', async (req, res) => {
-    let [result] = await pool.execute(`SELECT * FROM unit`);
-    res.json(result);
+    try {
+        let [result] = await pool.execute(`SELECT * FROM unit`);
+        res.json(result);
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 // 縣市

@@ -97,7 +97,7 @@ router.post('/:num', async (req, res) => {
     // res.download('uploads/築間.png');
     let file = __dirname + `/../${v.dbTime}/${numId}/${v.fileNo}`;
     res.download(file);
-    console.log(file);
+  
 });
 
 //刪除檔案
