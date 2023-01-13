@@ -668,7 +668,7 @@ async function postHandleStatus(req, res) {
     let handler = req.session.member.id;
     let v = req.body;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    console.log('first', v, handler);
+    // console.log('first', v, handler);
     let [result] = await pool.execute(
         'INSERT INTO handler_remark (case_number, content, handler_id, create_time) VALUES (?,?,?,?)',
         [v.num, v.submitMessage, handler, nowDate]
