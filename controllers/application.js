@@ -389,15 +389,50 @@ async function putUnNeedChecked(req, res) {
 // select checked
 async function postSelChecked(req, res) {
     const { needId } = req.params;
-    // console.log('n',needId);
-    let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [0, needId]);
+    let ind = req.body.Ind;
+    // console.log('n', needId);
+
+    if (ind === 'rc') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET responded_client=? WHERE id = ?', [
+            0,
+            needId,
+        ]);
+    }
+    if (ind === 'called') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET called=? WHERE id = ?', [0, needId]);
+    }
+
     // console.log('put', result);
     res.json({ message: '取消成功' });
 }
 async function postSelUnChecked(req, res) {
     const { needId } = req.params;
-    let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [1, needId]);
-    // console.log('put', result);
+    let ind = req.body.Ind;
+    // console.log('n', ind);
+    if (ind === 'rc') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET responded_client=? WHERE id = ?', [
+            1,
+            needId,
+        ]);
+    }
+    if (ind === 'called') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET called=? WHERE id = ?', [1, needId]);
+    }
+    if (ind === 'succ') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET success = ?,fail = ? WHERE id = ?', [
+            1,
+            0,
+            needId,
+        ]);
+    }
+    if (ind === 'fail') {
+        let [result] = await pool.execute('UPDATE select_states_checked SET success = ?,fail = ? WHERE id = ?', [
+            0,
+            1,
+            needId,
+        ]);
+    }
+
     res.json({ message: '勾選成功' });
 }
 
