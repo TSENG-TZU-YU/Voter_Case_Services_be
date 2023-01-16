@@ -71,6 +71,10 @@ router.post('/', async (req, res) => {
                     [r.number, data.text, 0, 0]
                 );
             }
+            let [select_state] = await pool.execute(
+                `INSERT INTO select_states_checked (case_number,responded_client,called,success,fail ) VALUES (?,?,?,?,?)`,
+                [r.number, 0, 0, 1, 0]
+            );
         }
     } catch (err) {
         console.log(err);

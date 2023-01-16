@@ -7,6 +7,10 @@ const appController = require('../controllers/application');
 router.put('/checked/:needId', appController.putNeedChecked);
 router.put('/unChecked/:needId', appController.putUnNeedChecked);
 
+// sel checked
+router.put('/selChecked/:needId', appController.postSelChecked);
+router.put('/selUnChecked/:needId', appController.postSelUnChecked);
+
 // post 審理結果
 router.post('/postHandle', appController.handlePost);
 
