@@ -10,6 +10,8 @@ router.put('/unChecked/:needId', appController.putUnNeedChecked);
 // sel checked
 router.post('/selChecked/:needId', appController.postSelChecked);
 router.post('/selUnChecked/:needId', appController.postSelUnChecked);
+router.post('/populaceMsg/:needId', appController.postPopulaceMsg);
+
 
 // post 審理結果
 router.post('/postHandle', appController.handlePost);
