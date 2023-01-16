@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
 const fs = require('fs');
+const argon2 = require('argon2');
 
 // 送出表單
 // http://localhost:3001/api/application_edit/submit
@@ -13,9 +14,10 @@ router.patch('/submit/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET  handler=?,application_category=?,status_id=?,create_time=?,relation=?,phoneCheck=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? `,
+            `UPDATE application_form SET  handler=?,application_source=?,application_category=?,status_id=?,create_time=?,relation=?,phoneCheck=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? `,
             [
                 r.handler,
+                r.application_source,
                 r.application_category,
                 r.status_id,
                 r.create_time,
@@ -54,13 +56,13 @@ router.patch('/store/:num', async (req, res) => {
         let r = req.body;
 
         let [application] = await pool.execute(
-            `UPDATE application_form SET handler=?,application_category=?,create_time=?,relation=?,phoneCheck=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? && status_id=?`,
+            `UPDATE application_form SET handler=?,application_source=?,application_category=?,create_time=?,relation=?,litigant=?,litigant_phone=?,litigant_county_id=?,litigant_area_id=?,litigant_rimin=?,litigant_address=?,client_name=?,client_phone=?,client_county=?,client_area=?,client_rimin=?,client_address=?,remark=?,sender=?,unit=? WHERE case_number=? && id=? && status_id=?`,
             [
                 r.handler,
+                r.application_source,
                 r.application_category,
                 r.create_time,
                 r.relation,
-                r.phoneCheck,
                 r.litigant,
                 r.litigant_phone,
                 r.litigant_county_id,
@@ -94,10 +96,9 @@ router.post('/file/:num', async (req, res) => {
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
     const arr = Object.values(req?.files || {});
-    console.log('v', v.file === undefined);
-
-    console.log('v.dbTime.length', v.dbTime.length);
-    console.log('v.file', v.file);
+    // console.log('v', v.file === undefined);
+    // console.log('v.dbTime.length', v.dbTime.length);
+    // console.log('v.file', v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
         console.log('nid', v.dbTime.length);
@@ -277,8 +278,10 @@ router.patch('/passWord', async (req, res) => {
     try {
         let r = req.body;
         console.log('rrr', r);
+        let hashPassword = await argon2.hash(r.password, 10);
+        console.log('rrr', hashPassword);
         let [application] = await pool.execute(`UPDATE users SET password=? WHERE id=? && staff_code=?`, [
-            r.password,
+            hashPassword,
             req.session.member.id,
             req.session.member.staff_code,
         ]);

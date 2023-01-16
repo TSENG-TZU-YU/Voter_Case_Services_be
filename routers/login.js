@@ -2,22 +2,26 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
+const argon2 = require('argon2');
 
 //登入
 // http://localhost:3001/api/login
 router.post('/', async (req, res) => {
     try {
         let rb = req.body;
-        let [users] = await pool.execute('SELECT * FROM users WHERE applicant_unit=? && staff_code=? &&password=?', [
+        let [users] = await pool.execute('SELECT * FROM users WHERE applicant_unit=? && staff_code=? ', [
             rb.company,
             rb.no,
-            rb.password,
         ]);
         if (users.length == 0) {
             return res.status(401).json({ message: '員編或密碼錯誤' });
         }
-        // console.log('rb', rb);
         let user = users[0];
+        let verifyResult = await argon2.verify(user.password, rb.password);
+        console.log('verifyResult', user.password);
+        if (!verifyResult) {
+            return res.status(401).json({ message: '員編或密碼錯誤' });
+        }
         let saveUser = {
             id: user.id,
             name: user.name,
