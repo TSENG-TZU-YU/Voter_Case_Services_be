@@ -55,11 +55,10 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
+      WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY ${orderType}
-       `,
-            [userId]
+       `
         );
     }
 
@@ -337,7 +336,7 @@ async function getUserIdApp(req, res) {
     //可選擇狀態
     let [selectResult] = await pool.execute(`SELECT * 
     FROM status 
-    WHERE id NOT IN (1,2,4,10,11,12)`);
+    WHERE id NOT IN (1,4,9)`);
     // 可選擇handler
     // console.log('se', selectResult);
     let [handlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = ? AND name NOT IN (?)`, [
@@ -354,6 +353,9 @@ async function getUserIdApp(req, res) {
     // 查看是否有處理情形
     let [remarkResult] = await pool.execute(`SELECT * FROM handler_remark WHERE case_number IN (?)`, [numId]);
 
+    // 案件處理情形checked
+    let [selCheckResult] = await pool.execute(`SELECT * FROM select_states_checked WHERE case_number IN (?)`, [numId]);
+
     // console.log('addCalendar', remarkResult.length);
 
     res.json({
@@ -365,6 +367,7 @@ async function getUserIdApp(req, res) {
         handlerResult,
         getFile,
         remarkResult,
+        selCheckResult,
     });
 }
 
@@ -377,6 +380,21 @@ async function putNeedChecked(req, res) {
     res.json({ message: '取消成功' });
 }
 async function putUnNeedChecked(req, res) {
+    const { needId } = req.params;
+    let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [1, needId]);
+    // console.log('put', result);
+    res.json({ message: '勾選成功' });
+}
+
+// select checked
+async function postSelChecked(req, res) {
+    const { needId } = req.params;
+    // console.log('n',needId);
+    let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [0, needId]);
+    // console.log('put', result);
+    res.json({ message: '取消成功' });
+}
+async function postSelUnChecked(req, res) {
     const { needId } = req.params;
     let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [1, needId]);
     // console.log('put', result);
@@ -539,9 +557,9 @@ async function handleFinish(req, res) {
     let handler = req.session.member.name;
     // console.log(caseNum, id);
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [11, id]);
+    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [9, id]);
 
-    addHandleState(caseNum, handler, 11, '', null, nowDate, null, null, 0);
+    addHandleState(caseNum, handler, 9, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -612,12 +630,12 @@ async function handleAcceptFinish(req, res) {
     // console.log('v', v);
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
-        12,
+        10,
         v.case_number,
         v.id,
     ]);
 
-    addHandleState(v.case_number, user, 12, '', null, nowDate, null, null, 0);
+    addHandleState(v.case_number, user, 10, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '已完成' });
@@ -746,4 +764,6 @@ module.exports = {
     getAssistantAllApp,
     getHandleStatus,
     postHandleStatus,
+    postSelChecked,
+    postSelUnChecked,
 };
