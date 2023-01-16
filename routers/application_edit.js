@@ -277,9 +277,7 @@ router.post('/deleteForm/:num', async (req, res) => {
 router.patch('/passWord', async (req, res) => {
     try {
         let r = req.body;
-        console.log('rrr', r);
         let hashPassword = await argon2.hash(r.password, 10);
-        console.log('rrr', hashPassword);
         let [application] = await pool.execute(`UPDATE users SET password=? WHERE id=? && staff_code=?`, [
             hashPassword,
             req.session.member.id,

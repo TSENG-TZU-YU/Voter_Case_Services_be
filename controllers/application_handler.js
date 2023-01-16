@@ -6,7 +6,7 @@ async function getAllAppHandler(req, res) {
     // console.table( categoryVal); 物件
     const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
 
-    let userId = req.session.member.id;
+    // let userId = req.session.member.id;
     let handleName = req.session.member.name;
     let Manage = req.session.member.manage;
     let Handler = req.session.member.handler;

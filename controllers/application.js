@@ -11,12 +11,12 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 // /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
-    let userId = req.session.member.id;
-    let handleName = req.session.member.name;
-    let Manage = req.session.member.manage;
+    // let userId = req.session.member.id;
+    // let handleName = req.session.member.name;
+    // let Manage = req.session.member.manage;
     let User = req.session.member.user;
-    let Handler = req.session.member.handler;
-    let Director = req.session.member.director;
+    // let Handler = req.session.member.handler;
+    // let Director = req.session.member.director;
 
     // console.log('ucc',userId);
 

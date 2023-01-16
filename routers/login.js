@@ -18,7 +18,6 @@ router.post('/', async (req, res) => {
         }
         let user = users[0];
         let verifyResult = await argon2.verify(user.password, rb.password);
-        console.log('verifyResult', user.password);
         if (!verifyResult) {
             return res.status(401).json({ message: '員編或密碼錯誤' });
         }
