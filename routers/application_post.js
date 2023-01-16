@@ -17,10 +17,16 @@ router.post('/', async (req, res) => {
         ]);
 
         // 轉換類型名稱
-        let [category] = await pool.execute('SELECT * FROM application_source');
-        let [newState] = category.filter((d) => {
-            return d.number === r.category;
+        let [source] = await pool.execute('SELECT * FROM application_source');
+        let [newState] = source.filter((d) => {
+            return d.number === r.source;
         });
+
+        // 轉換類型名稱
+        // let [category] = await pool.execute('SELECT * FROM application_source');
+        // let [newState1] = category.filter((d) => {
+        //     return d.number === r.category;
+        // });
 
         let v = req.body;
         if (v.unit === '') {
@@ -31,16 +37,16 @@ router.post('/', async (req, res) => {
 
         if (checkData.length === 0) {
             let [application] = await pool.execute(
-                `INSERT INTO application_form (case_number,user,user_id,handler,application_category,status_id,relation,phoneCheck,litigant,litigant_phone,litigant_county_id,litigant_area_id,litigant_rimin,litigant_address, client_name,client_phone,client_county,client_area,client_rimin,client_address,remark,sender,unit, create_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                `INSERT INTO application_form (case_number,user,user_id,handler,application_source,application_category,status_id,relation,litigant,litigant_phone,litigant_county_id,litigant_area_id,litigant_rimin,litigant_address, client_name,client_phone,client_county,client_area,client_rimin,client_address,remark,sender,unit, create_time) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
                 [
                     r.number,
                     r.user,
                     r.id,
                     r.handler,
                     newState.name,
+                    r.category,
                     r.status,
                     r.relation,
-                    r.phoneCheck,
                     r.litigant,
                     r.litigantPhone,
                     r.litigantCounty,
