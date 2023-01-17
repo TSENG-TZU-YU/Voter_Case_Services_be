@@ -498,14 +498,24 @@ async function handlePost(req, res) {
         );
     }
 
-    if (v.status !== '申請人需補上傳文件' && v.status !== '申請人須修改需求' && v.status !== '處理人轉件中') {
+    if (
+        v.status !== '申請人需補上傳文件' &&
+        v.status !== '申請人須修改需求' &&
+        v.status !== '處理人轉件中' &&
+        v.status !== '案件已完成'
+    ) {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
             [v.status, v.caseNumber, v0.id]
         );
     }
 
-    if (v.status === '申請人需補上傳文件' || v.status === '申請人須修改需求' || v.status === '處理人轉件中') {
+    if (
+        v.status === '申請人需補上傳文件' ||
+        v.status === '申請人須修改需求' ||
+        v.status === '處理人轉件中' ||
+        v.status === '案件已完成'
+    ) {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
             [v0.name, v.caseNumber, v0.id]
@@ -664,7 +674,9 @@ async function handleRejectCase(req, res) {
     let [v] = req.body;
     // console.log('v', v);
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [v.case_number]);
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [
+        v.case_number,
+    ]);
 
     let [states] = await pool.execute('SELECT * FROM status');
     let [newState] = states.filter((d) => {
@@ -728,14 +740,22 @@ async function handleRejectFinish(req, res) {
     let user = req.session.member.name;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('v', v);
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [
+        v.case_number,
+    ]);
+
+    let [states] = await pool.execute('SELECT * FROM status');
+    let [newState] = states.filter((d) => {
+        return d.name === lastSt[0].last_status;
+    });
 
     let [newResult] = await pool.execute(
         `UPDATE application_form SET status_id = ?
         WHERE case_number = ? AND  id = ? `,
-        [5, v.case_number, v.id]
+        [newState.id, v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, user, 5, '', null, nowDate, null, null, 0);
+    addHandleState(v.case_number, user, newState.id, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '拒絕接收成功' });
