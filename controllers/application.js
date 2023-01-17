@@ -467,9 +467,8 @@ async function handlePost(req, res) {
     let v = req.body;
     let v0 = req.body[0];
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    // console.log('object', nowD);
-    // console.log('all', v.finishTime === '');
-    // console.log('all0', nowDate);
+    console.log('object', v0.name);
+    // console.log('all', v0);
 
     // 取得更新狀態id
     let [states] = await pool.execute('SELECT * FROM status');
@@ -501,6 +500,30 @@ async function handlePost(req, res) {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET status_id = ?, sender = ? WHERE case_number = ? AND id = ?',
             [newState.id, v.transfer, v.caseNumber, v0.id]
+        );
+    }
+
+    if (
+        v.status !== '申請人需補上傳文件' &&
+        v.status !== '申請人須修改需求' &&
+        v.status !== '處理人轉件中' &&
+        v.status !== '案件已完成'
+    ) {
+        let [updateResult] = await pool.execute(
+            'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
+            [v.status, v.caseNumber, v0.id]
+        );
+    }
+
+    if (
+        v.status === '申請人需補上傳文件' ||
+        v.status === '申請人須修改需求' ||
+        v.status === '處理人轉件中' ||
+        v.status === '案件已完成'
+    ) {
+        let [updateResult] = await pool.execute(
+            'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
+            [v0.name, v.caseNumber, v0.id]
         );
     }
 
@@ -538,8 +561,14 @@ async function handlePostNeed(req, res) {
     let caseNum = v[0].case_number_id;
     // console.log('1', req.body[3]);
     // console.log('2', req.body);
-    // console.log('3',req.body[2])
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [caseNum]);
+
+    let [states] = await pool.execute('SELECT * FROM status');
+    let [newState] = states.filter((d) => {
+        return d.name === lastSt[0].last_status;
+    });
+    // console.log('3', lastSt[0].last_status, newState);
 
     let [delResult] = await pool.execute('DELETE FROM application_form_detail WHERE case_number_id = ? ', [caseNum]);
 
@@ -555,10 +584,10 @@ async function handlePostNeed(req, res) {
     if (input === 'finish') {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
-            [5, caseNum, id]
+            [newState.id, caseNum, id]
         );
 
-        addHandleState(caseNum, user, 5, '', null, nowDate, null, null, 0);
+        addHandleState(caseNum, user, newState.id, '', null, nowDate, null, null, 0);
     }
 
     if (input === 'submit') {
@@ -650,13 +679,22 @@ async function handleRejectCase(req, res) {
     let [v] = req.body;
     // console.log('v', v);
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [
+        v.case_number,
+    ]);
+
+    let [states] = await pool.execute('SELECT * FROM status');
+    let [newState] = states.filter((d) => {
+        return d.name === lastSt[0].last_status;
+    });
+
     let [newResult] = await pool.execute(
         `UPDATE application_form SET status_id=?, handler = ?, sender = ? 
         WHERE case_number = ? AND  id = ? `,
-        [4, v.handler, '', v.case_number, v.id]
+        [newState.id, v.handler, '', v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, v.handler, 4, '', null, nowDate, null, null, 0);
+    addHandleState(v.case_number, v.handler, newState.id, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -707,14 +745,22 @@ async function handleRejectFinish(req, res) {
     let user = req.session.member.name;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('v', v);
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [
+        v.case_number,
+    ]);
+
+    let [states] = await pool.execute('SELECT * FROM status');
+    let [newState] = states.filter((d) => {
+        return d.name === lastSt[0].last_status;
+    });
 
     let [newResult] = await pool.execute(
         `UPDATE application_form SET status_id = ?
         WHERE case_number = ? AND  id = ? `,
-        [5, v.case_number, v.id]
+        [newState.id, v.case_number, v.id]
     );
 
-    addHandleState(v.case_number, user, 5, '', null, nowDate, null, null, 0);
+    addHandleState(v.case_number, user, newState.id, '', null, nowDate, null, null, 0);
 
     // console.log('addCalendar', states);
     res.json({ message: '拒絕接收成功' });
@@ -766,7 +812,7 @@ async function handlePostFile(req, res) {
     let [newState] = source.filter((d) => {
         return d.name === v.No;
     });
-
+    console.log('object', newState);
     for (let i = 0; i < arr.length; i++) {
         let uploadPath = __dirname + `/../${nowDate}/${numId}/` + newState.number + v.fileNo + [i];
         arr[i].mv(uploadPath, (err) => {

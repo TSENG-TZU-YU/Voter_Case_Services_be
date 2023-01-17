@@ -48,11 +48,18 @@ router.get('/getHandlerFileNo/:num', async (req, res) => {
 router.patch('/patchStatus/:num', async (req, res) => {
     const numId = req.params.num;
 
+    let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [numId]);
+
+    let [states] = await pool.execute('SELECT * FROM status');
+    let [newState] = states.filter((d) => {
+        return d.name === lastSt[0].last_status;
+    });
+
     let [getUserTotalFile] = await pool.execute(` UPDATE application_form SET status_id=? WHERE case_number = ? `, [
-        5,
+        newState.id,
         numId,
     ]);
-    console.log('patchStatus');
+    // console.log('n', newState);
     res.json(getUserTotalFile);
 });
 
@@ -97,7 +104,6 @@ router.post('/:num', async (req, res) => {
     // res.download('uploads/築間.png');
     let file = __dirname + `/../${v.dbTime}/${numId}/${v.fileNo}`;
     res.download(file);
-  
 });
 
 //刪除檔案
