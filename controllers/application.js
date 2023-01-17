@@ -356,7 +356,15 @@ async function getUserIdApp(req, res) {
     // 案件處理情形checked
     let [selCheckResult] = await pool.execute(`SELECT * FROM select_states_checked WHERE case_number IN (?)`, [numId]);
 
-    // console.log('addCalendar', remarkResult.length);
+    // 目前狀態
+    let [nowStateResult] = await pool.execute(
+        `SELECT s.name
+    FROM application_form a
+    JOIN status s ON a.status_id = s.id
+    WHERE a.case_number = ? AND a.id = ?`,
+        [numId, caseId]
+    );
+    // console.log('addCalendar', nowStateResult);
 
     res.json({
         result,
@@ -368,6 +376,7 @@ async function getUserIdApp(req, res) {
         getFile,
         remarkResult,
         selCheckResult,
+        nowStateResult,
     });
 }
 
@@ -434,6 +443,17 @@ async function postSelUnChecked(req, res) {
     }
 
     res.json({ message: '勾選成功' });
+}
+
+// 民眾回饋
+async function postPopulaceMsg(req, res) {
+    const { needId } = req.params;
+    let content = req.body.populace;
+    // console.log('n', content);
+
+    let [result] = await pool.execute('UPDATE select_states_checked SET populace = ? WHERE id = ?', [content, needId]);
+
+    res.json({ message: '修改成功' });
 }
 
 // post 審理結果
@@ -801,4 +821,5 @@ module.exports = {
     postHandleStatus,
     postSelChecked,
     postSelUnChecked,
+    postPopulaceMsg,
 };
