@@ -737,8 +737,8 @@ async function handlePostFile(req, res) {
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
     // 轉換類型名稱
-    let [category] = await pool.execute('SELECT * FROM application_source');
-    let [newState] = category.filter((d) => {
+    let [source] = await pool.execute('SELECT * FROM application_source');
+    let [newState] = source.filter((d) => {
         return d.name === v.No;
     });
 
@@ -766,16 +766,16 @@ async function handlePostFile(req, res) {
             }
         }
     }
-    // if (v.valid === '1') {
-    //     await pool.execute(
-    //         `UPDATE select_states_detail SET up_files_time=? WHERE case_number=? && select_state=?  ORDER BY create_time LIMIT 1`,
-    //         [v.create_time, numId, '需補件']
-    //     );
-    //     await pool.execute(
-    //         `INSERT INTO select_states_detail (case_number,handler,select_state,create_time) VALUES(?,?,?,?)`,
-    //         [numId, v.handler, '已補件', v.create_time]
-    //     );
-    // }
+    if (v.valid === '1') {
+        await pool.execute(
+            `UPDATE select_states_detail SET up_files_time=? WHERE case_number=? && select_state=?  ORDER BY create_time LIMIT 1`,
+            [v.create_time, numId, '需補件']
+        );
+        await pool.execute(
+            `INSERT INTO select_states_detail (case_number,handler,select_state,create_time) VALUES(?,?,?,?)`,
+            [numId, v.handler, '已補件', v.create_time]
+        );
+    }
 
     res.send('ok2');
 }
