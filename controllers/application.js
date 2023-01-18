@@ -12,12 +12,7 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 async function getAllApp(req, res) {
     const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
     try {
-        // let userId = req.session.member.id;
-        // let handleName = req.session.member.name;
-        // let Manage = req.session.member.manage;
         let User = req.session.member.user;
-        // let Handler = req.session.member.handler;
-        // let Director = req.session.member.director;
 
         // console.log('ucc',userId);
 
@@ -58,7 +53,7 @@ async function getAllApp(req, res) {
       JOIN application_form_detail d ON a.case_number = d.case_number_id
       JOIN select_states_checked c ON a.case_number = c.case_number
       WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
-      GROUP BY d.case_number_id,s.name, u.applicant_unit
+      GROUP BY d.case_number_id,s.name, u.applicant_unit, c.called
       ORDER BY ${orderType}
        `
             );
@@ -341,7 +336,7 @@ async function getUserIdApp(req, res) {
     //可選擇狀態
     let [selectResult] = await pool.execute(`SELECT * 
     FROM status 
-    WHERE id NOT IN (1,4,9)`);
+    WHERE id NOT IN (1,4)`);
     // 可選擇handler
     // console.log('se', selectResult);
     let [handlerResult] = await pool.execute(`SELECT id,name FROM users WHERE handler = ? AND name NOT IN (?)`, [
@@ -467,7 +462,7 @@ async function handlePost(req, res) {
     let v = req.body;
     let v0 = req.body[0];
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    console.log('object', v0.name);
+    // console.log('object', v0.name);
     // console.log('all', v0);
 
     // 取得更新狀態id
@@ -503,24 +498,14 @@ async function handlePost(req, res) {
         );
     }
 
-    if (
-        v.status !== '申請人需補上傳文件' &&
-        v.status !== '申請人須修改需求' &&
-        v.status !== '處理人轉件中' &&
-        v.status !== '案件已完成'
-    ) {
+    if (v.status !== '申請人需補上傳文件' && v.status !== '申請人須修改需求' && v.status !== '處理人轉件中') {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
             [v.status, v.caseNumber, v0.id]
         );
     }
 
-    if (
-        v.status === '申請人需補上傳文件' ||
-        v.status === '申請人須修改需求' ||
-        v.status === '處理人轉件中' ||
-        v.status === '案件已完成'
-    ) {
+    if (v.status === '申請人需補上傳文件' || v.status === '申請人須修改需求' || v.status === '處理人轉件中') {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET last_status = ? WHERE case_number = ? AND id = ?',
             [v0.name, v.caseNumber, v0.id]
