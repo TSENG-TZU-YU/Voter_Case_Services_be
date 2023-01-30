@@ -47,6 +47,9 @@ router.get('/getCaseHistory/:case', appController.getCaseHistory);
 router.get('/getHandleStatus/:case', appController.getHandleStatus);
 router.post('/postHandleStatus', appController.postHandleStatus);
 
+// 稽核紀錄
+router.post('/postRecord', appController.postRecord);
+
 // 總管理filter all data
 router.get('/getAssistantAllApp', appController.getAssistantAllApp);
 
