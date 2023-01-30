@@ -117,6 +117,10 @@ app.use('/api/files', files);
 let permissions = require('./routers/permissions');
 app.use('/api/permissions', permissions);
 
+//稽核
+let audit = require('./routers/audit');
+app.use('/api/audit', audit);
+
 //-----------------------------------------------------
 // Routers middleware
 const applicationData = require('./routers/application');
