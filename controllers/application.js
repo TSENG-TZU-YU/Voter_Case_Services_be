@@ -792,10 +792,17 @@ async function postRecord(req, res) {
     let v = req.body;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('first', v, handler, nowDate);
-
+    let text = '';
+    if (v.page === 1) {
+        text = '查詢案件';
+    }
+    if (v.page === 2) {
+        text = '處理案件';
+    }
+    console.log('text', text);
     let [result] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
         handler,
-        v.caseNum,
+        text + v.caseNum,
         nowDate,
         v.page,
     ]);
