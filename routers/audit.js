@@ -3,14 +3,20 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 
-
-// 案件來源
+// 稽核
 // http://localhost:3001/api/audit
 router.get('/', async (req, res) => {
-    let [result] = await pool.execute(`SELECT * FROM audit_record`);
-    res.json(result);
-});
+    const { minDate, maxDate } = req.query;
+    try {
+        // 篩選
+        let dateVal = minDate || maxDate ? `(time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
 
+        let [result] = await pool.execute(`SELECT * FROM audit_record WHERE ${dateVal} ORDER BY time ASC`);
+        res.json(result);
+    } catch (err) {
+        console.log(err);
+    }
+});
 
 // 匯出
 module.exports = router;
