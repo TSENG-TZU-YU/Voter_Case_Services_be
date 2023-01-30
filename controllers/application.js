@@ -786,6 +786,23 @@ async function postHandleStatus(req, res) {
     res.json({ message: 'msg新增成功' });
 }
 
+// post 稽核紀錄
+async function postRecord(req, res) {
+    let handler = req.session.member.staff_code;
+    let v = req.body;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    // console.log('first', v, handler, nowDate);
+
+    let [result] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+        handler,
+        v.caseNum,
+        nowDate,
+        v.page,
+    ]);
+
+    res.json({ message: 'msg新增成功' });
+}
+
 // file
 async function handlePostFile(req, res) {
     const numId = req.params.num;
@@ -858,4 +875,5 @@ module.exports = {
     postSelChecked,
     postSelUnChecked,
     postPopulaceMsg,
+    postRecord,
 };
