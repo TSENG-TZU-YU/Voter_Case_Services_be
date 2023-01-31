@@ -121,6 +121,10 @@ app.use('/api/permissions', permissions);
 let audit = require('./routers/audit');
 app.use('/api/audit', audit);
 
+//工作日誌
+let workLog = require('./routers/workLog');
+app.use('/api/workLog', workLog);
+
 //-----------------------------------------------------
 // Routers middleware
 const applicationData = require('./routers/application');
