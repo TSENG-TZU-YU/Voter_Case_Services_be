@@ -7,7 +7,7 @@ const moment = require('moment');
 // 工作日誌
 // http://localhost:3001/api/workLog
 router.get('/', async (req, res) => {
-    // const { minDate, maxDate, search } = req.query;.replace(/-/g, '/');
+    // const { minDate, maxDate, search } = req.query;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
 
     try {
