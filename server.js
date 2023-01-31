@@ -125,6 +125,10 @@ app.use('/api/audit', audit);
 let workLog = require('./routers/workLog');
 app.use('/api/workLog', workLog);
 
+//圖表
+let simpleBarChart = require('./routers/simpleBarChart');
+app.use('/api/simpleBarChart', simpleBarChart);
+
 //-----------------------------------------------------
 // Routers middleware
 const applicationData = require('./routers/application');
