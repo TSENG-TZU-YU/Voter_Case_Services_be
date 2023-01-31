@@ -7,18 +7,33 @@ const moment = require('moment');
 // 工作日誌
 // http://localhost:3001/api/workLog
 router.get('/', async (req, res) => {
-    // const { minDate, maxDate, search } = req.query;
-    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    const { unit } = req.query;
+    let unitVal = unit ? `WHERE applicant_unit = '${unit}'` : '';
+    console.log('object',unit);
 
     try {
         let [result] = await pool.execute(`SELECT * FROM workLog ORDER BY staff_code ASC`);
-        let [user] = await pool.execute(`SELECT * FROM users ORDER BY staff_code ASC`);
+        let [user] = await pool.execute(`SELECT * FROM users ${unitVal} ORDER BY staff_code ASC`);
 
         for (let i = 0; i < result.length; i++) {
             result[i].time = String(result[i].time).replace(/-/g, '/');
         }
 
-        res.json({ result, user });
+        // all申請單位
+        [unitResult] = await pool.execute(`SELECT * FROM unit`);
+
+        res.json({ result, user, unitResult });
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// 查看詳細日誌內容
+router.post('/viewWorkLog', async (req, res) => {
+    let v = req.body;
+    try {
+        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? AND staff_code=?`, [v.time, v.code]);
+        res.json(result);
     } catch (err) {
         console.log(err);
     }
