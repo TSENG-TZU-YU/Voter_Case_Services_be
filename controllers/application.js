@@ -398,17 +398,33 @@ async function putUnNeedChecked(req, res) {
 // select checked
 async function postSelChecked(req, res) {
     const { needId } = req.params;
+    let handler = req.session.member.staff_code;
     let ind = req.body.Ind;
-    // console.log('n', needId);
+    let caseNum = req.body.caseNum;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
 
     if (ind === 'rc') {
         let [result] = await pool.execute('UPDATE select_states_checked SET responded_client=? WHERE id = ?', [
             0,
             needId,
         ]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `取消勾選案件${caseNum}回覆情況的'已回覆當事人情況'`,
+            nowDate,
+            0,
+        ]);
     }
     if (ind === 'called') {
         let [result] = await pool.execute('UPDATE select_states_checked SET called=? WHERE id = ?', [0, needId]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `取消勾選案件${caseNum}回覆情況的'請委員/議員致電陳情人'`,
+            nowDate,
+            0,
+        ]);
     }
 
     // console.log('put', result);
@@ -417,28 +433,63 @@ async function postSelChecked(req, res) {
 async function postSelUnChecked(req, res) {
     const { needId } = req.params;
     let ind = req.body.Ind;
+    let handler = req.session.member.staff_code;
+    let caseNum = req.body.caseNum;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+
     // console.log('n', ind);
     if (ind === 'rc') {
         let [result] = await pool.execute('UPDATE select_states_checked SET responded_client=? WHERE id = ?', [
             1,
             needId,
         ]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `勾選案件${caseNum}回覆情況的'已回覆當事人情況'`,
+            nowDate,
+            0,
+        ]);
     }
+
     if (ind === 'called') {
         let [result] = await pool.execute('UPDATE select_states_checked SET called=? WHERE id = ?', [1, needId]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `勾選案件${caseNum}回覆情況的'請委員/議員致電陳情人'`,
+            nowDate,
+            0,
+        ]);
     }
+
     if (ind === 'succ') {
         let [result] = await pool.execute('UPDATE select_states_checked SET success = ?,fail = ? WHERE id = ?', [
             1,
             0,
             needId,
         ]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `點選案件${caseNum}辦理結果的'成功'`,
+            nowDate,
+            0,
+        ]);
     }
+
     if (ind === 'fail') {
         let [result] = await pool.execute('UPDATE select_states_checked SET success = ?,fail = ? WHERE id = ?', [
             0,
             1,
             needId,
+        ]);
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `點選案件${caseNum}辦理結果的'失敗'`,
+            nowDate,
+            0,
         ]);
     }
 
@@ -449,9 +500,19 @@ async function postSelUnChecked(req, res) {
 async function postPopulaceMsg(req, res) {
     const { needId } = req.params;
     let content = req.body.populace;
-    // console.log('n', content);
+    let caseNum = req.body.case_number;
+    let handler = req.session.member.staff_code;
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    // console.log('n', req.body);
 
     let [result] = await pool.execute('UPDATE select_states_checked SET populace = ? WHERE id = ?', [content, needId]);
+
+    let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+        handler,
+        `填寫${caseNum}的民眾反饋`,
+        nowDate,
+        0,
+    ]);
 
     res.json({ message: '修改成功' });
 }
@@ -462,6 +523,8 @@ async function handlePost(req, res) {
     let v = req.body;
     let v0 = req.body[0];
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    let handler = req.session.member.staff_code;
+
     // console.log('object', v0.name);
     // console.log('all', v0);
 
@@ -491,11 +554,25 @@ async function handlePost(req, res) {
             'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
             [newState.id, v.caseNumber, v0.id]
         );
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `修改${v.caseNumber}的狀態為'${v.status}'`,
+            nowDate,
+            0,
+        ]);
     } else {
         let [updateResult] = await pool.execute(
             'UPDATE application_form SET status_id = ?, sender = ? WHERE case_number = ? AND id = ?',
             [newState.id, v.transfer, v.caseNumber, v0.id]
         );
+
+        let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+            handler,
+            `修改${v.caseNumber}的狀態為'${v.status}'`,
+            nowDate,
+            0,
+        ]);
     }
 
     if (v.status !== '申請人需補上傳文件' && v.status !== '申請人須修改需求' && v.status !== '處理人轉件中') {
@@ -775,6 +852,7 @@ async function getHandleStatus(req, res) {
 // post 案件處理情形
 async function postHandleStatus(req, res) {
     let handler = req.session.member.id;
+    let handler_code = req.session.member.staff_code;
     let v = req.body;
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log('first', v, handler);
@@ -782,6 +860,13 @@ async function postHandleStatus(req, res) {
         'INSERT INTO handler_remark (case_number, content, handler_id, create_time) VALUES (?,?,?,?)',
         [v.num, v.submitMessage, handler, nowDate]
     );
+
+    let [postResult] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
+        handler_code,
+        `填寫${v.num}的處理情形`,
+        nowDate,
+        0,
+    ]);
 
     res.json({ message: 'msg新增成功' });
 }
@@ -799,7 +884,7 @@ async function postRecord(req, res) {
     if (v.page === 2) {
         text = '處理案件';
     }
-    console.log('text', text);
+    // console.log('text', text);
     let [result] = await pool.execute('INSERT INTO audit_record (user, record, time, page) VALUES (?,?,?,?)', [
         handler,
         text + v.caseNum,
