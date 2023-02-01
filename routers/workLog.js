@@ -9,7 +9,6 @@ const moment = require('moment');
 router.get('/', async (req, res) => {
     const { unit } = req.query;
     let unitVal = unit ? `WHERE applicant_unit = '${unit}'` : '';
-    console.log('object',unit);
 
     try {
         let [result] = await pool.execute(`SELECT * FROM workLog ORDER BY staff_code ASC`);
