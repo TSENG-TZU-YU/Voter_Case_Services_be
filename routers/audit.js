@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
+const moment = require('moment');
 
 // 稽核
 // http://localhost:3001/api/audit
@@ -11,8 +12,43 @@ router.get('/', async (req, res) => {
         // 篩選
         let dateVal = minDate || maxDate ? `(time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
         let searchVal = search ? `AND (user LIKE '%${search}%' OR record LIKE '%${search}%')` : '';
-        let [result] = await pool.execute(`SELECT * FROM audit_record WHERE ${dateVal} ${searchVal} ORDER BY time DESC`);
+        let [result] = await pool.execute(
+            `SELECT * FROM audit_record WHERE ${dateVal} ${searchVal} ORDER BY time DESC`
+        );
         res.json(result);
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+//稽核登入
+router.post('/login', async (req, res) => {
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    let rb = req.body;
+    try {
+        let [users] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
+            rb.no,
+            '登入',
+            nowDate,
+        ]);
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+//稽核登入錯誤
+router.post('/login/err', async (req, res) => {
+    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
+    let rb = req.body;
+    try {
+        let [checkData] = await pool.execute(`SELECT * FROM users  WHERE staff_code = ? `, [rb.no]);
+        if (checkData.length !== 0) {
+            let [users] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
+                rb.no,
+                '登入密碼錯誤',
+                nowDate,
+            ]);
+        }
     } catch (err) {
         console.log(err);
     }

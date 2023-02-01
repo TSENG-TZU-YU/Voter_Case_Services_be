@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
-const moment = require('moment');
+
 
 //登入
 // http://localhost:3001/api/login
@@ -88,20 +88,7 @@ router.get('/unit', async (req, res) => {
     }
 });
 
-//稽核登入
-router.post('/audit', async (req, res) => {
-    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
-    let rb = req.body;
-    try {
-        let [users] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
-            rb.no,
-            '登入',
-            nowDate,
-        ]);
-    } catch (err) {
-        console.log(err);
-    }
-});
+
 
 // 匯出
 module.exports = router;

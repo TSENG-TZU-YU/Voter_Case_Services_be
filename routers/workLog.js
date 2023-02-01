@@ -42,13 +42,28 @@ router.post('/viewWorkLog', async (req, res) => {
 // http://localhost:3001/api/workLog
 router.post('/', async (req, res) => {
     let rb = req.body;
-    const { minDate, maxDate, search } = req.query;
+    const { minDate, maxDate } = req.query;
+    let session = req.session.member;
     let dateVal = minDate || maxDate ? `AND (time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+    let arr = req.body.sortAllDate;
     try {
+        for (let data of arr) {
+            let [checkData] = await pool.execute(`SELECT * FROM worklog  WHERE staff_code = ? && time=?`, [
+                rb.staff_code,
+                data,
+            ]);
+            if (checkData.length === 0) {
+                let [date] = await pool.execute(`INSERT INTO worklog (user,staff_code,unit,time) VALUES (?,?,?,?) `, [
+                    session.name,
+                    rb.staff_code,
+                    session.applicant_unit,
+                    data,
+                ]);
+            }
+        }
         let [result] = await pool.execute(`SELECT * FROM worklog WHERE staff_code=? ${dateVal} ORDER BY time DESC`, [
             rb.staff_code,
         ]);
-
         res.json(result);
     } catch (err) {
         console.log(err);
@@ -59,11 +74,10 @@ router.post('/', async (req, res) => {
 router.post('/submit', async (req, res) => {
     let rb = req.body;
     let session = req.session.member;
-    let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     try {
         let [users] = await pool.execute(
-            `INSERT INTO worklog (user,staff_code,unit,job_category,Job_description,create_time,time) VALUES (?,?,?,?,?,?,?)`,
-            [session.name, session.staff_code, session.applicant_unit, rb.workCategory, rb.workLog, nowDate, rb.time]
+            `UPDATE worklog SET  Job_description=? WHERE staff_code=? && unit=? && time=?`,
+            [rb.workLog, session.staff_code, session.applicant_unit, rb.time]
         );
     } catch (err) {
         console.log(err);
@@ -73,7 +87,7 @@ router.post('/submit', async (req, res) => {
 router.post('/detail', async (req, res) => {
     let rb = req.body;
     try {
-        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE create_time=?`, [rb.create_time]);
+        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=?`, [rb.create_time]);
         res.json(result);
     } catch (err) {
         console.log(err);
