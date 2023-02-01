@@ -126,8 +126,8 @@ let workLog = require('./routers/workLog');
 app.use('/api/workLog', workLog);
 
 //圖表
-let simpleBarChart = require('./routers/simpleBarChart');
-app.use('/api/simpleBarChart', simpleBarChart);
+let chart = require('./routers/chart');
+app.use('/api/chart', chart);
 
 //-----------------------------------------------------
 // Routers middleware
