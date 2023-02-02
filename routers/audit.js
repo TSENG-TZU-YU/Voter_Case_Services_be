@@ -42,13 +42,35 @@ router.post('/login/err', async (req, res) => {
     let rb = req.body;
     try {
         let [checkData] = await pool.execute(`SELECT * FROM users  WHERE staff_code = ? `, [rb.no]);
-        if (checkData.length !== 0) {
+        if (checkData.length !== 0 && checkData[0].isLock < 4) {
             let [users] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
                 rb.no,
                 '登入密碼錯誤',
                 nowDate,
             ]);
         }
+        if (checkData.length !== 0 && checkData[0].isLock === 4) {
+            let [users] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
+                rb.no,
+                '帳號已鎖住，請聯絡管理員處理',
+                nowDate,
+            ]);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+//稽核案件新增
+router.post('/appSubmit', async (req, res) => {
+    let rb = req.body;
+    try {
+        let [result] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [
+            rb.user,
+            '新增選民服務案件' + rb.number,
+            rb.create_time,
+        ]);
+        res.json(result);
     } catch (err) {
         console.log(err);
     }

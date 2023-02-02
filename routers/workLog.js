@@ -87,7 +87,10 @@ router.post('/submit', async (req, res) => {
 router.post('/detail', async (req, res) => {
     let rb = req.body;
     try {
-        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=?`, [rb.create_time]);
+        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? && staff_code=?`, [
+            rb.create_time,
+            rb.staff_code,
+        ]);
         res.json(result);
     } catch (err) {
         console.log(err);

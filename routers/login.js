@@ -4,7 +4,6 @@ const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
 
-
 //登入
 // http://localhost:3001/api/login
 router.post('/', async (req, res) => {
@@ -20,7 +19,25 @@ router.post('/', async (req, res) => {
         let user = users[0];
         let verifyResult = await argon2.verify(user.password, rb.password);
         if (!verifyResult) {
-            return res.status(401).json({ message: '員編或密碼錯誤' });
+            //密碼輸入錯誤
+            if (users.length !== 0 && user.isLock < 4) {
+                let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [
+                    user.isLock + 1,
+                    rb.no,
+                ]);
+            }
+            if (users[0].isLock === 4) {
+                return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理' });
+            } else {
+                return res.status(401).json({ message: '員編或密碼錯誤' });
+            }
+        }
+        //密碼輸入正確
+        if (users.length !== 0 && user.isLock < 4) {
+            let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [0, rb.no]);
+        }
+        if (users.length !== 0 && user.isLock === 4) {
+            return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理' });
         }
         let saveUser = {
             id: user.id,
@@ -87,8 +104,6 @@ router.get('/unit', async (req, res) => {
         console.log(err);
     }
 });
-
-
 
 // 匯出
 module.exports = router;
