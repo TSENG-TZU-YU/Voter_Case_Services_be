@@ -14,31 +14,34 @@ router.post('/', async (req, res) => {
             rb.no,
         ]);
         if (users.length == 0) {
-            return res.status(401).json({ message: '員編或密碼錯誤' });
+            return res.status(401).json({ message: '單位錯誤' });
         }
         let user = users[0];
         let verifyResult = await argon2.verify(user.password, rb.password);
+        let [checkData] = await pool.execute('SELECT * FROM users WHERE  staff_code=? ', [rb.no]);
+        let check = checkData[0];
         if (!verifyResult) {
             //密碼輸入錯誤
-            if (users.length !== 0 && user.isLock < 4) {
+            if (checkData.length !== 0 && check.isLock < 4) {
                 let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [
                     user.isLock + 1,
                     rb.no,
                 ]);
             }
-            if (users[0].isLock === 4) {
-                return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理' });
+            if (check.isLock === 4) {
+                return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: check.isLock });
             } else {
-                return res.status(401).json({ message: '員編或密碼錯誤' });
+                return res.status(401).json({ message: '員編或密碼錯誤', isLock: check.isLock });
             }
         }
         //密碼輸入正確
-        if (users.length !== 0 && user.isLock < 4) {
+        if (checkData.length !== 0 && check.isLock < 4) {
             let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [0, rb.no]);
         }
-        if (users.length !== 0 && user.isLock === 4) {
-            return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理' });
+        if (checkData.length !== 0 && check.isLock === 4) {
+            return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: check.isLock });
         }
+
         let saveUser = {
             id: user.id,
             name: user.name,
