@@ -289,6 +289,45 @@ router.patch('/passWord', async (req, res) => {
     }
 });
 
+// 取得權限密碼
+// http://localhost:3001/api/application_edit/getPermissionsPassWord
+router.get('/getPermissionsPassWord', async (req, res) => {
+    try {
+        let [result] = await pool.execute(
+            `SELECT id, name, applicant_unit unit, staff_code code, valid1, valid2
+        FROM users
+        WHERE isLock = ?
+        ORDER BY applicant_unit ASC
+         `,
+            [4]
+        );
+        res.json({
+            result,
+        });
+    } catch (err) {
+        console.log(err);
+    }
+});
+
+// 更改權限密碼
+// http://localhost:3001/api/application_edit/permissionsPassWord
+router.patch('/permissionsPassWord', async (req, res) => {
+    try {
+        let v = req.body;
+        // console.log('v', v.passThr[v.ind],v.ind);
+        let hashPassword = await argon2.hash(v.passThr[v.ind].valid1, 10);
+        let [application] = await pool.execute(`UPDATE users SET isLock=?, password=? WHERE id=? && staff_code=?`, [
+            0,
+            hashPassword,
+            v.passThr[v.ind].id,
+            v.passThr[v.ind].code,
+        ]);
+        res.send('ok2');
+    } catch (err) {
+        console.log(err);
+    }
+});
+
 // 匯出
 module.exports = router;
 
