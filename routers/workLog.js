@@ -74,12 +74,16 @@ router.post('/', authMid.checkLogin, async (req, res) => {
 // 新增日誌
 router.post('/submit', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
-    let session = req.session.member;
+    console.log('rb', rb);
+    let arr = req.body.AllData;
+    console.log(arr);
     try {
-        let [users] = await pool.execute(
-            `UPDATE worklog SET  Job_description=? WHERE staff_code=? && unit=? && time=?`,
-            [rb.Job_description, session.staff_code, session.applicant_unit, rb.time]
-        );
+        for (let data of arr) {
+            let [users] = await pool.execute(
+                `UPDATE worklog SET Job_description=? WHERE staff_code=? && unit=? && time=?`,
+                [data.Job_description, data.staff_code, data.unit, data.time]
+            );
+        }
     } catch (err) {
         console.log(err);
     }
@@ -88,10 +92,10 @@ router.post('/submit', authMid.checkLogin, async (req, res) => {
 router.post('/detail', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
     try {
-        let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? && staff_code=?`, [
-            rb.create_time,
-            rb.staff_code,
-        ]);
+        let [result] = await pool.execute(
+            `SELECT * FROM  worklog  WHERE time=? && staff_code=? && id=? ORDER BY time DESC`,
+            [rb.create_time, rb.staff_code, rb.id]
+        );
         res.json(result);
     } catch (err) {
         console.log(err);
