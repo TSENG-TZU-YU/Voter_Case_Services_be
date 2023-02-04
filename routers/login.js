@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
 const authMid = require('../middlewares/auth');
+const permissionsMid = require('../middlewares/permissions');
 
 //登入
 // http://localhost:3001/api/login

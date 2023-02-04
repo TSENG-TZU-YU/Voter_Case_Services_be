@@ -46,8 +46,9 @@ router.get('/getHandlerFileNo/:num', authMid.checkLogin, async (req, res) => {
 
 // 上傳檔案更新狀態(已補件)
 // http://localhost:3001/api/files/patchStatus
-router.patch('/patchStatus/:num', authMid.checkLogin, async (req, res) => {
+router.post('/patchStatus/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
+    console.log('a');
 
     let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [numId]);
 
@@ -55,7 +56,7 @@ router.patch('/patchStatus/:num', authMid.checkLogin, async (req, res) => {
     let [newState] = states.filter((d) => {
         return d.name === lastSt[0].last_status;
     });
-
+    console.log('b', newState.id);
     let [getUserTotalFile] = await pool.execute(` UPDATE application_form SET status_id=? WHERE case_number = ? `, [
         newState.id,
         numId,
@@ -99,7 +100,7 @@ router.patch('/patchStatus/:num', authMid.checkLogin, async (req, res) => {
 
 //下載檔案
 //http://localhost:3001/api/files
-router.post('/:num',authMid.checkLogin, async (req, res) => {
+router.post('/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     // res.download('uploads/築間.png');
@@ -109,7 +110,7 @@ router.post('/:num',authMid.checkLogin, async (req, res) => {
 
 //刪除檔案
 //http://localhost:3001/api/files/delete
-router.post('/delete/:num',authMid.checkLogin, async (req, res) => {
+router.post('/delete/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     let filePath = __dirname + `/../${v.dbTime}/${numId}`;
