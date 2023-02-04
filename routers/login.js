@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
 const authMid = require('../middlewares/auth');
+const permissionsMid = require('../middlewares/permissions');
 
 //登入
 // http://localhost:3001/api/login
@@ -60,13 +61,13 @@ router.post('/', async (req, res) => {
 });
 //登入驗證
 // http://localhost:3001/api/login/auth
-router.get('/auth', async (req, res) => {
+router.get('/auth', authMid.checkLogin, async (req, res) => {
     try {
-        if (!req.session.member) {
-            return res.status(401).json({ message: '尚未登入' });
-        }
-console.log('a',req.session.member)
-        // 更新sessiona
+        // if (!req.session.member) {
+        //     return res.status(401).json({ message: '尚未登入' });
+        // }
+
+        // 更新session
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
 
         let user = users[0];
