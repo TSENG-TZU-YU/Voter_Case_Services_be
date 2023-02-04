@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id: user.permissions_id,
             manage: user.manage,
             handler: user.handler,
             user: user.user,
@@ -66,7 +65,7 @@ router.get('/auth', async (req, res) => {
         if (!req.session.member) {
             return res.status(401).json({ message: '尚未登入' });
         }
-
+console.log('a',req.session.member)
         // 更新sessiona
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
 
@@ -77,7 +76,6 @@ router.get('/auth', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id: user.permissions_id,
             manage: user.manage,
             handler: user.handler,
             user: user.user,

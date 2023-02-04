@@ -2,7 +2,6 @@ const express = require('express');
 const authMid = require('../middlewares/auth');
 const router = express.Router();
 const appController = require('../controllers/application');
-// const authMid = require('../middlewares/auth');
 
 // checked
 router.put('/checked/:needId', authMid.checkLogin, appController.putNeedChecked);
