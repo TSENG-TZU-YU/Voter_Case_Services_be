@@ -10,7 +10,7 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 
 // /api/1.0/applicationData?category = 1
 async function getAllApp(req, res) {
-    const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
+    const { category, state, unit, minDate, maxDate, order, HUnit, search } = req.query;
     try {
         let User = req.session.member.user;
 
@@ -23,6 +23,9 @@ async function getAllApp(req, res) {
         let unitHVal = HUnit ? `AND (a.unit = '${HUnit}')` : '';
         let dateVal =
             minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+        let titleSearch = search
+            ? `AND (a.case_number LIKE '%${search}%' OR u.applicant_unit LIKE '%${search}%' OR a.user LIKE '%${search}%' OR a.unit LIKE '%${search}%' OR a.handler LIKE '%${search}%' OR a.application_category LIKE '%${search}%' OR a.create_time LIKE '%${search}%' OR s.name LIKE '%${search}%')`
+            : '';
 
         let orderType = null;
         switch (order) {
@@ -88,7 +91,7 @@ async function getAllApp(req, res) {
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
       JOIN select_states_checked c ON a.case_number = c.case_number
-      WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal}
+      WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal} ${titleSearch}
       GROUP BY d.case_number_id,s.name, u.applicant_unit, c.called
       ORDER BY ${orderType}
        `

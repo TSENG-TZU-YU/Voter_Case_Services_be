@@ -4,7 +4,7 @@ const pool = require('../utils/db');
 async function getAllAppHandler(req, res) {
     // console.count('被打了');
     // console.table( categoryVal); 物件
-    const { category, state, unit, minDate, maxDate, order, HUnit } = req.query;
+    const { category, state, unit, minDate, maxDate, order, HUnit, search } = req.query;
     // console.log('ucc', req.session.member );
     try {
         // let userId = req.session.member.id;
@@ -20,6 +20,9 @@ async function getAllAppHandler(req, res) {
         let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
         let dateVal =
             minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+        let titleSearch = search
+            ? `AND (a.case_number LIKE '%${search}%' OR u.applicant_unit LIKE '%${search}%' OR a.user LIKE '%${search}%' OR a.unit LIKE '%${search}%' OR a.handler LIKE '%${search}%' OR a.application_category LIKE '%${search}%' OR a.create_time LIKE '%${search}%' OR s.name LIKE '%${search}%')`
+            : '';
 
         let orderType = null;
         switch (order) {
@@ -85,7 +88,7 @@ async function getAllAppHandler(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE (a.handler = ? OR a.sender = ? OR a.unit = ?) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
+        WHERE (a.handler = ? OR a.sender = ? OR a.unit = ?) ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal} ${titleSearch}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY ${orderType}
          `,
@@ -101,7 +104,7 @@ async function getAllAppHandler(req, res) {
         JOIN status s ON a.status_id = s.id
         JOIN users u ON a.user_id = u.id
         JOIN application_form_detail d ON a.case_number = d.case_number_id
-        WHERE a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal}
+        WHERE a.valid = ? ${categoryVal} ${stateVal} ${unitVal} ${dateVal} ${unitHVal} ${titleSearch}
         GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
         ORDER BY ${orderType}
          `,
