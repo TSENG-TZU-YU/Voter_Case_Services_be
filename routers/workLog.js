@@ -74,9 +74,7 @@ router.post('/', authMid.checkLogin, async (req, res) => {
 // 新增日誌
 router.post('/submit', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
-    console.log('rb', rb);
     let arr = req.body.AllData;
-    console.log(arr);
     try {
         for (let data of arr) {
             let [users] = await pool.execute(
