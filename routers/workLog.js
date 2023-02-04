@@ -78,7 +78,7 @@ router.post('/submit', authMid.checkLogin, async (req, res) => {
     try {
         let [users] = await pool.execute(
             `UPDATE worklog SET  Job_description=? WHERE staff_code=? && unit=? && time=?`,
-            [rb.workLog, session.staff_code, session.applicant_unit, rb.time]
+            [rb.Job_description, session.staff_code, session.applicant_unit, rb.time]
         );
     } catch (err) {
         console.log(err);
