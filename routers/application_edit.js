@@ -274,7 +274,7 @@ router.post('/deleteForm/:num', async (req, res) => {
 
 // 更改密碼
 // http://localhost:3001/api/application_edit/passWord
-router.patch('/passWord', async (req, res) => {
+router.post('/passWord', async (req, res) => {
     try {
         let r = req.body;
         let hashPassword = await argon2.hash(r.password, 10);
@@ -311,7 +311,7 @@ router.get('/getPermissionsPassWord', async (req, res) => {
 
 // 更改權限密碼
 // http://localhost:3001/api/application_edit/permissionsPassWord
-router.patch('/permissionsPassWord', async (req, res) => {
+router.post('/permissionsPassWord', async (req, res) => {
     try {
         let v = req.body;
         // console.log('v', v.passThr[v.ind],v.ind);

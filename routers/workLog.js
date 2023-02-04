@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
     let unitVal = unit ? `WHERE applicant_unit = '${unit}'` : '';
 
     try {
-        let [result] = await pool.execute(`SELECT * FROM workLog ORDER BY staff_code ASC`);
+        let [result] = await pool.execute(`SELECT * FROM worklog ORDER BY staff_code ASC`);
         let [user] = await pool.execute(`SELECT * FROM users ${unitVal} ORDER BY staff_code ASC`);
 
         for (let i = 0; i < result.length; i++) {
