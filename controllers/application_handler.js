@@ -13,8 +13,6 @@ async function getAllAppHandler(req, res) {
         let Handler = req.session.member.handler;
         let HandlerUnit = req.session.member.applicant_unit;
 
-      
-
         // 篩選
         let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
         let stateVal = state ? `AND (a.status_id = ${state})` : '';
@@ -36,6 +34,42 @@ async function getAllAppHandler(req, res) {
                 break;
             case '4':
                 orderType = 'a.create_time DESC';
+                break;
+            case '5':
+                orderType = 'u.applicant_unit ASC';
+                break;
+            case '6':
+                orderType = 'u.applicant_unit DESC';
+                break;
+            case '7':
+                orderType = 'a.user ASC';
+                break;
+            case '8':
+                orderType = 'a.user DESC';
+                break;
+            case '9':
+                orderType = 'a.unit ASC';
+                break;
+            case '10':
+                orderType = 'a.unit DESC';
+                break;
+            case '11':
+                orderType = 'a.handler ASC';
+                break;
+            case '12':
+                orderType = 'a.handler DESC';
+                break;
+            case '13':
+                orderType = 'a.application_category ASC';
+                break;
+            case '14':
+                orderType = 'a.application_category DESC';
+                break;
+            case '15':
+                orderType = 's.name ASC';
+                break;
+            case '16':
+                orderType = 's.name DESC';
                 break;
             default:
                 orderType = 'a.create_time DESC';

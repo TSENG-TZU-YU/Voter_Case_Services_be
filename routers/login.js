@@ -9,10 +9,7 @@ const argon2 = require('argon2');
 router.post('/', async (req, res) => {
     try {
         let rb = req.body;
-        let [users] = await pool.execute('SELECT * FROM users WHERE applicant_unit=? && staff_code=? ', [
-            rb.company,
-            rb.no,
-        ]);
+        let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [rb.no]);
         if (users.length == 0) {
             return res.status(401).json({ message: '單位錯誤' });
         }
