@@ -5,10 +5,11 @@ const pool = require('../utils/db');
 const moment = require('moment');
 const fs = require('fs');
 const argon2 = require('argon2');
+const authMid = require('../middlewares/auth');
 
 // 送出表單
 // http://localhost:3001/api/application_edit/submit
-router.patch('/submit/:num', async (req, res) => {
+router.patch('/submit/:num', authMid.checkLogin, async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -50,7 +51,7 @@ router.patch('/submit/:num', async (req, res) => {
 
 // 儲存表單
 // http://localhost:3001/api/application_edit/store
-router.patch('/store/:num', async (req, res) => {
+router.patch('/store/:num', authMid.checkLogin,async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -91,7 +92,7 @@ router.patch('/store/:num', async (req, res) => {
 
 // 上傳檔案
 // http://localhost:3001/api/application_edit/file
-router.post('/file/:num', async (req, res) => {
+router.post('/file/:num',authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
@@ -257,7 +258,7 @@ router.post('/file/:num', async (req, res) => {
 
 // 刪除表單
 // http://localhost:3001/api/application_edit/deleteForm
-router.post('/deleteForm/:num', async (req, res) => {
+router.post('/deleteForm/:num',authMid.checkLogin, async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -274,7 +275,7 @@ router.post('/deleteForm/:num', async (req, res) => {
 
 // 更改密碼
 // http://localhost:3001/api/application_edit/passWord
-router.post('/passWord', async (req, res) => {
+router.post('/passWord',authMid.checkLogin, async (req, res) => {
     try {
         let r = req.body;
         let hashPassword = await argon2.hash(r.password, 10);
@@ -291,7 +292,7 @@ router.post('/passWord', async (req, res) => {
 
 // 取得權限密碼
 // http://localhost:3001/api/application_edit/getPermissionsPassWord
-router.get('/getPermissionsPassWord', async (req, res) => {
+router.get('/getPermissionsPassWord',authMid.checkLogin, async (req, res) => {
     try {
         let [result] = await pool.execute(
             `SELECT id, name, applicant_unit unit, staff_code code, valid1, valid2
@@ -311,7 +312,7 @@ router.get('/getPermissionsPassWord', async (req, res) => {
 
 // 更改權限密碼
 // http://localhost:3001/api/application_edit/permissionsPassWord
-router.post('/permissionsPassWord', async (req, res) => {
+router.post('/permissionsPassWord',authMid.checkLogin, async (req, res) => {
     try {
         let v = req.body;
         // console.log('v', v.passThr[v.ind],v.ind);

@@ -3,10 +3,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
+const authMid = require('../middlewares/auth');
 
 // 稽核
 // http://localhost:3001/api/audit
-router.get('/', async (req, res) => {
+router.get('/',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate, search } = req.query;
     try {
         // 篩選
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 //稽核登入
-router.post('/login', async (req, res) => {
+router.post('/login',authMid.checkLogin, async (req, res) => {
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let rb = req.body;
     try {
@@ -37,7 +38,7 @@ router.post('/login', async (req, res) => {
 });
 
 //稽核登入錯誤
-router.post('/login/err', async (req, res) => {
+router.post('/login/err',authMid.checkLogin, async (req, res) => {
     let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     let rb = req.body;
     try {
@@ -62,7 +63,7 @@ router.post('/login/err', async (req, res) => {
 });
 
 //稽核案件新增
-router.post('/appSubmit', async (req, res) => {
+router.post('/appSubmit',authMid.checkLogin, async (req, res) => {
     let rb = req.body;
     try {
         let [result] = await pool.execute(`INSERT INTO audit_record (user,record,time) VALUES (?,?,?)`, [

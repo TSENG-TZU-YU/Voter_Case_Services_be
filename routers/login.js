@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const argon2 = require('argon2');
+const authMid = require('../middlewares/auth');
 
 //登入
 // http://localhost:3001/api/login
@@ -15,28 +16,27 @@ router.post('/', async (req, res) => {
         }
         let user = users[0];
         let verifyResult = await argon2.verify(user.password, rb.password);
-        let [checkData] = await pool.execute('SELECT * FROM users WHERE  staff_code=? ', [rb.no]);
-        let check = checkData[0];
+
         if (!verifyResult) {
             //密碼輸入錯誤
-            if (checkData.length !== 0 && check.isLock < 4) {
+            if (users.length !== 0 && user.isLock < 4) {
                 let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [
                     user.isLock + 1,
                     rb.no,
                 ]);
             }
-            if (check.isLock === 4) {
-                return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: check.isLock });
+            if (user.isLock === 4) {
+                return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: user.isLock });
             } else {
-                return res.status(401).json({ message: '員編或密碼錯誤', isLock: check.isLock });
+                return res.status(401).json({ message: '員編或密碼錯誤', isLock: user.isLock });
             }
         }
         //密碼輸入正確
-        if (checkData.length !== 0 && check.isLock < 4) {
+        if (users.length !== 0 && user.isLock < 4) {
             let [result] = await pool.execute(`UPDATE users SET  isLock=? WHERE staff_code=? `, [0, rb.no]);
         }
-        if (checkData.length !== 0 && check.isLock === 4) {
-            return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: check.isLock });
+        if (users.length !== 0 && user.isLock === 4) {
+            return res.status(401).json({ message: '帳號已鎖住，請聯絡管理員處理', isLock: user.isLock });
         }
 
         let saveUser = {
@@ -85,7 +85,6 @@ router.get('/auth', async (req, res) => {
         };
 
         req.session.member = saveUser;
-        // console.log('2', req.session);
 
         res.json(user);
     } catch (err) {
