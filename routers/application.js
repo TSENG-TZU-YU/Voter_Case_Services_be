@@ -1,64 +1,64 @@
 const express = require('express');
+const authMid = require('../middlewares/auth');
 const router = express.Router();
 const appController = require('../controllers/application');
 // const authMid = require('../middlewares/auth');
 
 // checked
-router.put('/checked/:needId', appController.putNeedChecked);
-router.put('/unChecked/:needId', appController.putUnNeedChecked);
+router.put('/checked/:needId', authMid.checkLogin, appController.putNeedChecked);
+router.put('/unChecked/:needId', authMid.checkLogin, appController.putUnNeedChecked);
 
 // sel checked
-router.post('/selChecked/:needId', appController.postSelChecked);
-router.post('/selUnChecked/:needId', appController.postSelUnChecked);
-router.post('/populaceMsg/:needId', appController.postPopulaceMsg);
-
+router.post('/selChecked/:needId', authMid.checkLogin, appController.postSelChecked);
+router.post('/selUnChecked/:needId', authMid.checkLogin, appController.postSelUnChecked);
+router.post('/populaceMsg/:needId', authMid.checkLogin, appController.postPopulaceMsg);
 
 // post 審理結果
-router.post('/postHandle', appController.handlePost);
+router.post('/postHandle', authMid.checkLogin, appController.handlePost);
 
 // put 狀態 4 -> 5
 // router.post('/changeState/:caseNum', appController.handleChangeState);
 
 // post 修改需求
-router.post('/postAddNeed', appController.handlePostNeed);
+router.post('/postAddNeed', authMid.checkLogin, appController.handlePostNeed);
 // router.post('/putAcceptNeed/:num', appController.handleAcceptNeed);
 
 // 取消申請
-router.post('/cancleAcc/:num', appController.handleCancleAcc);
+router.post('/cancleAcc/:num', authMid.checkLogin, appController.handleCancleAcc);
 
 // finish
-router.post('/applicationFinish/:num', appController.handleFinish);
+router.post('/applicationFinish/:num', authMid.checkLogin, appController.handleFinish);
 
 // user 確認是否完成
-router.post('/acceptFinish', appController.handleAcceptFinish);
-router.post('/rejectFinish', appController.handleRejectFinish);
+router.post('/acceptFinish', authMid.checkLogin, appController.handleAcceptFinish);
+router.post('/rejectFinish', authMid.checkLogin, appController.handleRejectFinish);
 
 // 轉件
-router.post('/acceptCase', appController.handleAcceptCase);
-router.post('/rejectCase', appController.handleRejectCase);
+router.post('/acceptCase', authMid.checkLogin, appController.handleAcceptCase);
+router.post('/rejectCase', authMid.checkLogin, appController.handleRejectCase);
 
 // 沒有指定handler, 確認接收
-router.post('/handlerReceiveCase/:num', appController.handleReceiveCase);
+router.post('/handlerReceiveCase/:num', authMid.checkLogin, appController.handleReceiveCase);
 
 // 審核歷程
-router.get('/getCaseHistory/:case', appController.getCaseHistory);
+router.get('/getCaseHistory/:case', authMid.checkLogin, appController.getCaseHistory);
 
 // 案件處理情形
-router.get('/getHandleStatus/:case', appController.getHandleStatus);
-router.post('/postHandleStatus', appController.postHandleStatus);
+router.get('/getHandleStatus/:case', authMid.checkLogin, appController.getHandleStatus);
+router.post('/postHandleStatus', authMid.checkLogin, appController.postHandleStatus);
 
 // 稽核紀錄
-router.post('/postRecord', appController.postRecord);
+router.post('/postRecord', authMid.checkLogin, appController.postRecord);
 
 // 總管理filter all data
-router.get('/getAssistantAllApp', appController.getAssistantAllApp);
+router.get('/getAssistantAllApp', authMid.checkLogin, appController.getAssistantAllApp);
 
 // 全部列表資料
-router.get('/', appController.getAllApp);
+router.get('/', authMid.checkLogin, appController.getAllApp);
 
-router.post('/:num', appController.getUserIdApp);
+router.post('/:num', authMid.checkLogin, appController.getUserIdApp);
 
 // post file
-router.post('/postHandleFile/:num', appController.handlePostFile);
+router.post('/postHandleFile/:num', authMid.checkLogin, appController.handlePostFile);
 
 module.exports = router;
