@@ -127,7 +127,7 @@ let workLog = require('./routers/workLog');
 app.use('/api/workLog', workLog);
 
 //圖表
-let chart = require('./routers/chart');
+let chart = require('./routers/chart_page');
 app.use('/api/chart', chart);
 
 //-----------------------------------------------------

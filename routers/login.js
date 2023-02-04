@@ -65,7 +65,6 @@ router.get('/auth', authMid.checkLogin, async (req, res) => {
         // if (!req.session.member) {
         //     return res.status(401).json({ message: '尚未登入' });
         // }
-
         // 更新sessiona
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
 

@@ -1,24 +1,28 @@
 let checkLogin = function (req, res, next) {
-    console.log('req.session.member', req.session.member);
     // 判斷這個人是否已經登入？
     // session 裡如果沒有 member 這個資料，表示沒有登入過
+
     if (!req.session.member) {
+        console.log('req.session.member', req.session.member);
+
         //尚未登入
         return res.status(403).json({ msg: '尚未登入' });
     }
-    // next();
+    next();
 
-    // if (req.session.member.user === 1) {
-    //   //尚未登入
-    //   return res.json({ msg: '權限一' });
-    // }
+    if (req.session.member.user === 1) {
+        console.count('1');
+        return res.status(200).json({ msg: '權限一' });
+    }
     // next();
 
     // if (req.session.member.handler === 1) {
     //   //尚未登入
     //   return res.json({ msg: '權限三' });
     // }
-    // next();
+    // // next();
 };
 
-module.exports = { checkLogin };
+module.exports = {
+    checkLogin,
+};
