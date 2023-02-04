@@ -4,6 +4,6 @@ const appController = require('../controllers/application_handler');
 const authMid = require('../middlewares/auth');
 
 // 全部列表資料
-router.get('/', authMid.checkLogin, appController.getAllAppHandler);
+router.get('/', appController.getAllAppHandler);
 
 module.exports = router;

@@ -66,8 +66,7 @@ router.get('/auth', authMid.checkLogin, async (req, res) => {
         // if (!req.session.member) {
         //     return res.status(401).json({ message: '尚未登入' });
         // }
-
-        // 更新session
+        // 更新sessiona
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
 
         let user = users[0];
@@ -93,7 +92,7 @@ router.get('/auth', authMid.checkLogin, async (req, res) => {
 
 //撈取單位
 // http://localhost:3001/api/login/unit
-router.get('/unit', async (req, res) => {
+router.get('/unit', authMid.checkLogin, async (req, res) => {
     try {
         let [unit] = await pool.execute('SELECT * FROM unit ');
 
