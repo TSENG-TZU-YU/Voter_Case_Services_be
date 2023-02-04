@@ -123,7 +123,7 @@ async function getAllAppHandler(req, res) {
         [handlerResult] = await pool.execute(`SELECT * FROM handler`);
 
         // all申請人
-        [userResult] = await pool.execute(`SELECT * FROM users WHERE permissions_id = ?`, [1]);
+        [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ?`, [1]);
 
         // console.log('res', unitResult);
 

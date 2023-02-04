@@ -45,7 +45,6 @@ router.post('/', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id: user.permissions_id,
             manage: user.manage,
             handler: user.handler,
             user: user.user,
@@ -61,11 +60,11 @@ router.post('/', async (req, res) => {
 });
 //登入驗證
 // http://localhost:3001/api/login/auth
-router.get('/auth', async (req, res) => {
+router.get('/auth', authMid.checkLogin, async (req, res) => {
     try {
-        if (!req.session.member) {
-            return res.status(401).json({ message: '尚未登入' });
-        }
+        // if (!req.session.member) {
+        //     return res.status(401).json({ message: '尚未登入' });
+        // }
 
         // 更新sessiona
         let [users] = await pool.execute('SELECT * FROM users WHERE staff_code=? ', [req.session.member.staff_code]);
@@ -77,7 +76,6 @@ router.get('/auth', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id: user.permissions_id,
             manage: user.manage,
             handler: user.handler,
             user: user.user,
@@ -94,7 +92,7 @@ router.get('/auth', async (req, res) => {
 
 //撈取單位
 // http://localhost:3001/api/login/unit
-router.get('/unit', async (req, res) => {
+router.get('/unit', authMid.checkLogin, async (req, res) => {
     try {
         let [unit] = await pool.execute('SELECT * FROM unit ');
 

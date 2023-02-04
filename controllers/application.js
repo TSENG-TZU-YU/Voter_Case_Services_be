@@ -130,7 +130,6 @@ async function getAssistantAllApp(req, res) {
     // console.log('c', category, state, unit, minDate, maxDate, typeof handler, user);
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
-    const permissions = req.session.member.permissions_id;
     let manage = req.session.member.manage;
     let User = req.session.member.user;
 
