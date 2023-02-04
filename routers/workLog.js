@@ -3,10 +3,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
+const authMid = require('../middlewares/auth');
 
 // 工作日誌
 // http://localhost:3001/api/workLog
-router.get('/', async (req, res) => {
+router.get('/', authMid.checkLogin, async (req, res) => {
     const { unit } = req.query;
     let unitVal = unit ? `WHERE applicant_unit = '${unit}'` : '';
 
@@ -28,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // 查看詳細日誌內容
-router.post('/viewWorkLog', async (req, res) => {
+router.post('/viewWorkLog', authMid.checkLogin, async (req, res) => {
     let v = req.body;
     try {
         let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? AND staff_code=?`, [v.time, v.code]);
@@ -40,7 +41,7 @@ router.post('/viewWorkLog', async (req, res) => {
 
 // 日誌
 // http://localhost:3001/api/workLog
-router.post('/', async (req, res) => {
+router.post('/', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
     const { minDate, maxDate } = req.query;
     let session = req.session.member;
@@ -71,7 +72,7 @@ router.post('/', async (req, res) => {
 });
 
 // 新增日誌
-router.post('/submit', async (req, res) => {
+router.post('/submit', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
     let session = req.session.member;
     try {
@@ -84,7 +85,7 @@ router.post('/submit', async (req, res) => {
     }
 });
 // 查看日誌
-router.post('/detail', async (req, res) => {
+router.post('/detail', authMid.checkLogin, async (req, res) => {
     let rb = req.body;
     try {
         let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? && staff_code=?`, [

@@ -1,12 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const appController = require('../controllers/application_handler');
-// const authMid = require('../middlewares/auth');
-
-
+const authMid = require('../middlewares/auth');
 
 // 全部列表資料
-router.get('/', appController.getAllAppHandler);
-
+router.get('/', authMid.checkLogin, appController.getAllAppHandler);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 require('dotenv').config();
+// const authMid = require('../middlewares/auth');
 
 const pool = require('./utils/db.js');
 //文件上傳

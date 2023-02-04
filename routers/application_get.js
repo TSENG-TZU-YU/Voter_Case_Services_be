@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
+const authMid = require('../middlewares/auth');
 
 // 處理人
 // http://localhost:3001/api/application_get/handler
-router.post('/handler', async (req, res) => {
+router.post('/handler',authMid.checkLogin, async (req, res) => {
     try {
         let v = req.body;
         if (v.unit === '') {
@@ -22,13 +23,13 @@ router.post('/handler', async (req, res) => {
 
 // 案件來源
 // http://localhost:3001/api/application_get/source
-router.get('/source', async (req, res) => {
+router.get('/source',authMid.checkLogin, async (req, res) => {
     let [result] = await pool.execute(`SELECT * FROM application_source`);
     res.json(result);
 });
 // 案件類別
 // http://localhost:3001/api/application_get/category
-router.get('/category', async (req, res) => {
+router.get('/category',authMid.checkLogin, async (req, res) => {
     let [result] = await pool.execute(`SELECT * FROM application_category`);
     res.json(result);
 });
@@ -41,7 +42,7 @@ router.get('/category', async (req, res) => {
 
 // 單位
 // http://localhost:3001/api/application_get/unit
-router.get('/unit', async (req, res) => {
+router.get('/unit',authMid.checkLogin, async (req, res) => {
     try {
         let [result] = await pool.execute(`SELECT * FROM unit`);
         res.json(result);
@@ -52,14 +53,14 @@ router.get('/unit', async (req, res) => {
 
 // 縣市
 // http://localhost:3001/api/application_get/county
-router.get('/county', async (req, res) => {
+router.get('/county',authMid.checkLogin, async (req, res) => {
     let [result] = await pool.execute(`SELECT * FROM county`);
     res.json(result);
 });
 
 // 區
 // http://localhost:3001/api/application_get/area
-router.post('/area', async (req, res) => {
+router.post('/area',authMid.checkLogin, async (req, res) => {
     let v = req.body;
     let [county] = await pool.execute(`SELECT * FROM county`);
     let [nemData] = county.filter((d) => {
@@ -76,7 +77,7 @@ router.post('/area', async (req, res) => {
 
 // 里
 // http://localhost:3001/api/application_get/rimin
-router.post('/rimin', async (req, res) => {
+router.post('/rimin',authMid.checkLogin, async (req, res) => {
     let v = req.body;
     let [county] = await pool.execute(`SELECT * FROM area`);
     let [nemData] = county.filter((d) => {

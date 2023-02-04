@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const moment = require('moment');
+const authMid = require('../middlewares/auth');
 
 // CategoryPage
 // http://localhost:3001/api/chart/CategoryPage
-router.get('/CategoryPage', async (req, res) => {
+router.get('/CategoryPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
@@ -19,7 +20,7 @@ router.get('/CategoryPage', async (req, res) => {
 
 // StatusPage
 // http://localhost:3001/api/chart/StatusPage
-router.get('/StatusPage', async (req, res) => {
+router.get('/StatusPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
@@ -33,7 +34,7 @@ router.get('/StatusPage', async (req, res) => {
 
 // appUnitPage
 // http://localhost:3001/api/chart/appUnitPage
-router.get('/appUnitPage', async (req, res) => {
+router.get('/appUnitPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
@@ -47,7 +48,7 @@ router.get('/appUnitPage', async (req, res) => {
 
 // appUserPage
 // http://localhost:3001/api/chart/appUserPage
-router.get('/appUserPage', async (req, res) => {
+router.get('/appUserPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
@@ -61,7 +62,7 @@ router.get('/appUserPage', async (req, res) => {
 
 // handlerUnitPage
 // http://localhost:3001/api/chart/handlerUnitPage
-router.get('/handlerUnitPage', async (req, res) => {
+router.get('/handlerUnitPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
@@ -75,7 +76,7 @@ router.get('/handlerUnitPage', async (req, res) => {
 
 // handlerUserPage
 // http://localhost:3001/api/chart/handlerUserPage
-router.get('/handlerUserPage', async (req, res) => {
+router.get('/handlerUserPage',authMid.checkLogin, async (req, res) => {
     const { minDate, maxDate } = req.query;
     let dateVal =
         minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';

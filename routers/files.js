@@ -3,10 +3,11 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
 const fs = require('fs');
+const authMid = require('../middlewares/auth');
 
 // 抓取使用者上傳的檔案
 // http://localhost:3001/api/files/getUserFile
-router.get('/getUserFile/:num', async (req, res) => {
+router.get('/getUserFile/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
@@ -19,7 +20,7 @@ router.get('/getUserFile/:num', async (req, res) => {
 
 // 抓取處理者上傳的檔案
 // http://localhost:3001/api/files/getHandlerFile
-router.get('/getHandlerFile/:num', async (req, res) => {
+router.get('/getHandlerFile/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
@@ -32,7 +33,7 @@ router.get('/getHandlerFile/:num', async (req, res) => {
 
 // 抓取處理者上傳的檔案
 // http://localhost:3001/api/files/getHandlerFileNo
-router.get('/getHandlerFileNo/:num', async (req, res) => {
+router.get('/getHandlerFileNo/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
@@ -45,7 +46,7 @@ router.get('/getHandlerFileNo/:num', async (req, res) => {
 
 // 上傳檔案更新狀態(已補件)
 // http://localhost:3001/api/files/patchStatus
-router.patch('/patchStatus/:num', async (req, res) => {
+router.patch('/patchStatus/:num', authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
 
     let [lastSt] = await pool.execute('SELECT last_status FROM application_form WHERE case_number = ? ', [numId]);
@@ -98,7 +99,7 @@ router.patch('/patchStatus/:num', async (req, res) => {
 
 //下載檔案
 //http://localhost:3001/api/files
-router.post('/:num', async (req, res) => {
+router.post('/:num',authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     // res.download('uploads/築間.png');
@@ -108,7 +109,7 @@ router.post('/:num', async (req, res) => {
 
 //刪除檔案
 //http://localhost:3001/api/files/delete
-router.post('/delete/:num', async (req, res) => {
+router.post('/delete/:num',authMid.checkLogin, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     let filePath = __dirname + `/../${v.dbTime}/${numId}`;
