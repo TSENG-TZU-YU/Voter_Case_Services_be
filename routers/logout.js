@@ -6,7 +6,7 @@ const authMid = require('../middlewares/auth');
 
 //登出
 // http://localhost:3001/api/logout
-router.get('/', async (req, res) => {
+router.get('/', authMid.checkLogin, async (req, res) => {
     try {
         req.session.member = null;
         res.json({ message: '已登出' });

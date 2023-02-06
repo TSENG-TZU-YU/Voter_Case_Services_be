@@ -7,7 +7,7 @@ const authMid = require('../middlewares/auth');
 
 // 工作日誌
 // http://localhost:3001/api/workLog
-router.get('/', authMid.checkLogin, async (req, res) => {
+router.get('/', authMid.checkLogin, authMid.manage, async (req, res) => {
     const { unit } = req.query;
     let unitVal = unit ? `WHERE applicant_unit = '${unit}'` : '';
 
@@ -29,7 +29,7 @@ router.get('/', authMid.checkLogin, async (req, res) => {
 });
 
 // 查看詳細日誌內容
-router.post('/viewWorkLog', authMid.checkLogin, async (req, res) => {
+router.post('/viewWorkLog', authMid.checkLogin, authMid.manage, async (req, res) => {
     let v = req.body;
     try {
         let [result] = await pool.execute(`SELECT * FROM  worklog  WHERE time=? AND staff_code=?`, [v.time, v.code]);
@@ -41,7 +41,7 @@ router.post('/viewWorkLog', authMid.checkLogin, async (req, res) => {
 
 // 日誌
 // http://localhost:3001/api/workLog
-router.post('/', authMid.checkLogin, async (req, res) => {
+router.post('/', authMid.checkLogin, authMid.handler, async (req, res) => {
     let rb = req.body;
     const { minDate, maxDate } = req.query;
     let session = req.session.member;
@@ -72,7 +72,7 @@ router.post('/', authMid.checkLogin, async (req, res) => {
 });
 
 // 新增日誌
-router.post('/submit', authMid.checkLogin, async (req, res) => {
+router.post('/submit', authMid.checkLogin, authMid.handler, async (req, res) => {
     let rb = req.body;
     let arr = req.body.AllData;
     try {
@@ -87,7 +87,7 @@ router.post('/submit', authMid.checkLogin, async (req, res) => {
     }
 });
 // 查看日誌
-router.post('/detail', authMid.checkLogin, async (req, res) => {
+router.post('/detail', authMid.checkLogin, authMid.handler, async (req, res) => {
     let rb = req.body;
     try {
         let [result] = await pool.execute(

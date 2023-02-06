@@ -9,7 +9,7 @@ const authMid = require('../middlewares/auth');
 
 // 送出表單
 // http://localhost:3001/api/application_edit/submit
-router.patch('/submit/:num', authMid.checkLogin, async (req, res) => {
+router.patch('/submit/:num', authMid.checkLogin, authMid.handler, async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -51,7 +51,7 @@ router.patch('/submit/:num', authMid.checkLogin, async (req, res) => {
 
 // 儲存表單
 // http://localhost:3001/api/application_edit/store
-router.patch('/store/:num', authMid.checkLogin, async (req, res) => {
+router.patch('/store/:num', authMid.checkLogin, authMid.handler, async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -92,7 +92,7 @@ router.patch('/store/:num', authMid.checkLogin, async (req, res) => {
 
 // 上傳檔案
 // http://localhost:3001/api/application_edit/file
-router.post('/file/:num', authMid.checkLogin, async (req, res) => {
+router.post('/file/:num', authMid.checkLogin, authMid.handler, async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
@@ -102,7 +102,7 @@ router.post('/file/:num', authMid.checkLogin, async (req, res) => {
     // console.log('v.file', v.file);
     //刪除資料庫檔案
     if (v.dbTime.length > 1) {
-        console.log('nid', v.dbTime.length);
+        // console.log('nid', v.dbTime.length);
 
         let [result] = await pool.execute(`SELECT * FROM upload_files_detail WHERE case_number_id=?`, [numId]);
 
@@ -143,7 +143,7 @@ router.post('/file/:num', authMid.checkLogin, async (req, res) => {
                     }
                 }
             } else {
-                console.log('d', 'del');
+                // console.log('d', 'del');
                 let [deletFile1] = await pool.execute(
                     `DELETE FROM upload_files_detail
                     WHERE case_number_id=?`,
@@ -258,7 +258,7 @@ router.post('/file/:num', authMid.checkLogin, async (req, res) => {
 
 // 刪除表單
 // http://localhost:3001/api/application_edit/deleteForm
-router.post('/deleteForm/:num', authMid.checkLogin, async (req, res) => {
+router.post('/deleteForm/:num', authMid.checkLogin, authMid.handler, async (req, res) => {
     try {
         const numId = req.params.num;
         let r = req.body;
@@ -275,7 +275,7 @@ router.post('/deleteForm/:num', authMid.checkLogin, async (req, res) => {
 
 // 更改密碼
 // http://localhost:3001/api/application_edit/passWord
-router.post('/passWord', authMid.checkLogin, async (req, res) => {
+router.post('/passWord', authMid.checkLogin, authMid.all, async (req, res) => {
     try {
         let r = req.body;
         let hashPassword = await argon2.hash(r.password, 10);
@@ -292,7 +292,7 @@ router.post('/passWord', authMid.checkLogin, async (req, res) => {
 
 // 取得權限密碼
 // http://localhost:3001/api/application_edit/getPermissionsPassWord
-router.get('/getPermissionsPassWord', authMid.checkLogin, async (req, res) => {
+router.get('/getPermissionsPassWord', authMid.checkLogin, authMid.manage, async (req, res) => {
     try {
         let [result] = await pool.execute(
             `SELECT id, name, applicant_unit unit, staff_code code, valid1, valid2

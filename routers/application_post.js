@@ -7,7 +7,7 @@ const authMid = require('../middlewares/auth');
 
 // 處理人
 // http://localhost:3001/api/application_post
-router.post('/', async (req, res) => {
+router.post('/', authMid.checkLogin, authMid.handler, async (req, res) => {
     try {
         let r = req.body;
         let arr = req.body.need;
@@ -83,7 +83,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.post('/file', authMid.checkLogin, async (req, res) => {
+router.post('/file', authMid.checkLogin,authMid.handler, async (req, res) => {
     const arr = Object.values(req?.files || {});
     let v = req.body;
     let nowDate = moment().format('YYYYMM');

@@ -33,31 +33,31 @@ router.post('/acceptFinish', authMid.checkLogin, appController.handleAcceptFinis
 router.post('/rejectFinish', authMid.checkLogin, appController.handleRejectFinish);
 
 // 轉件
-router.post('/acceptCase', authMid.checkLogin, appController.handleAcceptCase);
-router.post('/rejectCase', authMid.checkLogin, appController.handleRejectCase);
+router.post('/acceptCase', authMid.checkLogin, authMid.handler_manage, appController.handleAcceptCase);
+router.post('/rejectCase', authMid.checkLogin, authMid.handler_manage, appController.handleRejectCase);
 
 // 沒有指定handler, 確認接收
-router.post('/handlerReceiveCase/:num', authMid.checkLogin, appController.handleReceiveCase);
+router.post('/handlerReceiveCase/:num', authMid.checkLogin, authMid.handler_manage, appController.handleReceiveCase);
 
 // 審核歷程
-router.get('/getCaseHistory/:case', authMid.checkLogin, appController.getCaseHistory);
+router.get('/getCaseHistory/:case', authMid.checkLogin, authMid.handler_manage, appController.getCaseHistory);
 
 // 案件處理情形
-router.get('/getHandleStatus/:case', authMid.checkLogin, appController.getHandleStatus);
-router.post('/postHandleStatus', authMid.checkLogin, appController.postHandleStatus);
+router.get('/getHandleStatus/:case', authMid.checkLogin, authMid.handler_manage, appController.getHandleStatus);
+router.post('/postHandleStatus', authMid.checkLogin, authMid.handler_manage, appController.postHandleStatus);
 
 // 稽核紀錄
 router.post('/postRecord', authMid.checkLogin, appController.postRecord);
 
 // 總管理filter all data
-router.get('/getAssistantAllApp', authMid.checkLogin, appController.getAssistantAllApp);
+router.get('/getAssistantAllApp', authMid.checkLogin, authMid.manage, appController.getAssistantAllApp);
 
 // 全部列表資料
-router.get('/', authMid.checkLogin, appController.getAllApp);
+router.get('/', authMid.checkLogin, authMid.user, appController.getAllApp);
 
 router.post('/:num', authMid.checkLogin, appController.getUserIdApp);
 
 // post file
-router.post('/postHandleFile/:num', authMid.checkLogin, appController.handlePostFile);
+router.post('/postHandleFile/:num', authMid.checkLogin, authMid.handler, appController.handlePostFile);
 
 module.exports = router;

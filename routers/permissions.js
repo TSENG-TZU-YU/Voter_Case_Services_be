@@ -4,7 +4,7 @@ const pool = require('../utils/db');
 const authMid = require('../middlewares/auth');
 
 //單位  http://localhost:3001/api/permissions/category
-router.get('/category',authMid.checkLogin, async (req, res) => {
+router.get('/category', authMid.checkLogin, async (req, res) => {
     try {
         let [result] = await pool.execute('SELECT * FROM unit');
         res.json(result);
@@ -14,7 +14,7 @@ router.get('/category',authMid.checkLogin, async (req, res) => {
 });
 
 //使用者  http://localhost:3001/api/permissions/user
-router.get('/user',authMid.checkLogin, async (req, res) => {
+router.get('/user', authMid.checkLogin, authMid.user, async (req, res) => {
     try {
         let [result] = await pool.execute('SELECT * FROM users');
         res.json(result);
@@ -24,7 +24,7 @@ router.get('/user',authMid.checkLogin, async (req, res) => {
 });
 
 //權限  http://localhost:3001/api/permissions/allPermissionsData
-router.get('/allPermissionsData',authMid.checkLogin, async (req, res) => {
+router.get('/allPermissionsData', authMid.checkLogin, authMid.handler, async (req, res) => {
     try {
         let [result] = await pool.execute('SELECT * FROM users u  WHERE director=? || handler=?', [1, 1]);
         res.json(result);
@@ -32,8 +32,6 @@ router.get('/allPermissionsData',authMid.checkLogin, async (req, res) => {
         console.log(err);
     }
 });
-
-
 
 // 匯出
 module.exports = router;
