@@ -83,7 +83,7 @@ router.post('/', authMid.checkLogin, authMid.handler, async (req, res) => {
     }
 });
 
-router.post('/file', authMid.checkLogin,authMid.handler, async (req, res) => {
+router.post('/file', authMid.checkLogin, authMid.handler, async (req, res) => {
     const arr = Object.values(req?.files || {});
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
