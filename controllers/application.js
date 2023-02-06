@@ -126,6 +126,118 @@ async function getAllApp(req, res) {
     }
 }
 
+// get報表資料 /api/1.0/applicationData/getReport?category = 1
+async function getReport(req, res) {
+    const { category, state, unit, minDate, maxDate, order, HUnit, search } = req.query;
+    try {
+        let User = req.session.member.user;
+
+        // console.log('ucc',userId);
+
+        // 篩選
+        let categoryVal = category ? `AND (a.application_category = '${category}')` : '';
+        let stateVal = state ? `AND (a.status_id = ${state})` : '';
+        let unitVal = unit ? `AND (u.applicant_unit = '${unit}')` : '';
+        let unitHVal = HUnit ? `AND (a.unit = '${HUnit}')` : '';
+        let dateVal =
+            minDate || maxDate ? `AND (a.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+        let titleSearch = search
+            ? `AND (a.application_category LIKE '%${search}%' OR a.application_source LIKE '%${search}%' OR a.litigant LIKE '%${search}%' OR a.client_name LIKE '%${search}%' OR a.create_time LIKE '%${search}%' OR s.name LIKE '%${search}%')`
+            : '';
+
+        let orderType = null;
+        switch (order) {
+            case '1':
+                orderType = 'a.application_source ASC';
+                break;
+            case '2':
+                orderType = 'a.application_source DESC';
+                break;
+            case '3':
+                orderType = 'a.application_category ASC';
+                break;
+            case '4':
+                orderType = 'a.application_category DESC';
+                break;
+            case '5':
+                orderType = 'a.litigant ASC';
+                break;
+            case '6':
+                orderType = 'a.litigant DESC';
+                break;
+            case '7':
+                orderType = 'a.client_name ASC';
+                break;
+            case '8':
+                orderType = 'a.client_name DESC';
+                break;
+            case '9':
+                orderType = 'a.create_time ASC';
+                break;
+            case '10':
+                orderType = 'a.create_time DESC';
+                break;
+            case '11':
+                orderType = 's.name ASC';
+                break;
+            case '12':
+                orderType = 's.name DESC';
+                break;
+            case '13':
+                orderType = 'c.called ASC';
+                break;
+            case '14':
+                orderType = 'c.called DESC';
+                break;
+            default:
+                orderType = 'a.create_time DESC';
+        }
+
+        let result = '';
+        // user permissions=1
+        if (User === 1) {
+            [result] = await pool.execute(
+                `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou , c.called
+      FROM application_form a 
+      JOIN status s ON a.status_id = s.id
+      JOIN users u ON a.user_id = u.id
+      JOIN application_form_detail d ON a.case_number = d.case_number_id
+      JOIN select_states_checked c ON a.case_number = c.case_number
+      WHERE (a.status_id NOT IN (1)) ${categoryVal} ${stateVal} ${unitVal} ${dateVal}  ${unitHVal} ${titleSearch}
+      GROUP BY d.case_number_id,s.name, u.applicant_unit, c.called
+      ORDER BY ${orderType}
+       `
+            );
+        }
+
+        // all申請單位
+        [unitResult] = await pool.execute(`SELECT * FROM unit`);
+
+        // all申請狀態
+        [statusResult] = await pool.execute(`SELECT * FROM status`);
+
+        // all申請類別
+        [categoryResult] = await pool.execute(`SELECT * FROM application_category`);
+
+        // all處理人
+        [handlerResult] = await pool.execute(`SELECT * FROM handler`);
+
+        // all申請人
+        [userResult] = await pool.execute(`SELECT * FROM users WHERE user = ?`, [1]);
+
+        res.json({
+            result,
+            unitResult,
+            statusResult,
+            categoryResult,
+            handlerResult,
+            userResult,
+        });
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 // 總管理filter all data
 // /api/1.0/applicationData/getAssistantAllApp?category = 1
 async function getAssistantAllApp(req, res) {
@@ -1006,4 +1118,5 @@ module.exports = {
     postSelUnChecked,
     postPopulaceMsg,
     postRecord,
+    getReport,
 };

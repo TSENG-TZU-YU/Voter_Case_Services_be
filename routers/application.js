@@ -33,18 +33,18 @@ router.post('/postAddNeed', authMid.checkLogin, authMid.user, appController.hand
 // router.post('/rejectFinish', authMid.checkLogin, appController.handleRejectFinish);
 
 // 轉件
-router.post('/acceptCase', authMid.checkLogin, authMid.handler_manage, appController.handleAcceptCase);
-router.post('/rejectCase', authMid.checkLogin, authMid.handler_manage, appController.handleRejectCase);
+router.post('/acceptCase', authMid.checkLogin, authMid.handler, appController.handleAcceptCase);
+router.post('/rejectCase', authMid.checkLogin, authMid.handler, appController.handleRejectCase);
 
 // 沒有指定handler, 確認接收
-router.post('/handlerReceiveCase/:num', authMid.checkLogin, authMid.handler_manage, appController.handleReceiveCase);
+router.post('/handlerReceiveCase/:num', authMid.checkLogin, authMid.handler, appController.handleReceiveCase);
 
 // 審核歷程
-router.get('/getCaseHistory/:case', authMid.checkLogin, authMid.handler_manage, appController.getCaseHistory);
+router.get('/getCaseHistory/:case', authMid.checkLogin, authMid.user, appController.getCaseHistory);
 
 // 案件處理情形
-router.get('/getHandleStatus/:case', authMid.checkLogin, authMid.handler_manage, appController.getHandleStatus);
-router.post('/postHandleStatus', authMid.checkLogin, authMid.handler_manage, appController.postHandleStatus);
+router.get('/getHandleStatus/:case', authMid.checkLogin, authMid.user, appController.getHandleStatus);
+router.post('/postHandleStatus', authMid.checkLogin, authMid.handler, appController.postHandleStatus);
 
 // 稽核紀錄
 router.post('/postRecord', authMid.checkLogin, authMid.handler_manage, appController.postRecord);
@@ -56,6 +56,9 @@ router.get('/getAssistantAllApp', authMid.checkLogin, authMid.manage, appControl
 router.get('/', authMid.checkLogin, authMid.user, appController.getAllApp);
 
 router.post('/:num', authMid.checkLogin, authMid.user, appController.getUserIdApp);
+
+// 報表列表資料
+router.get('/getReport', authMid.checkLogin, authMid.manage, appController.getReport);
 
 // post file
 router.post('/postHandleFile/:num', authMid.checkLogin, authMid.handler, appController.handlePostFile);
