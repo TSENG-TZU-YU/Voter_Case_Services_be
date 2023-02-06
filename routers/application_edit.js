@@ -312,7 +312,7 @@ router.get('/getPermissionsPassWord', authMid.checkLogin, authMid.manage, async 
 
 // 更改權限密碼
 // http://localhost:3001/api/application_edit/permissionsPassWord
-router.post('/permissionsPassWord', authMid.checkLogin, async (req, res) => {
+router.post('/permissionsPassWord', authMid.checkLogin, authMid.manage, async (req, res) => {
     try {
         let v = req.body;
         // console.log('v', v.passThr[v.ind],v.ind);

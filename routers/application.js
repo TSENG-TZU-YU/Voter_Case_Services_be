@@ -47,7 +47,7 @@ router.get('/getHandleStatus/:case', authMid.checkLogin, authMid.user, appContro
 router.post('/postHandleStatus', authMid.checkLogin, authMid.handler, appController.postHandleStatus);
 
 // 稽核紀錄
-router.post('/postRecord', authMid.checkLogin, authMid.handler_manage, appController.postRecord);
+router.post('/postRecord', authMid.checkLogin, authMid.manage, appController.postRecord);
 
 // 總管理filter all data
 router.get('/getAssistantAllApp', authMid.checkLogin, authMid.manage, appController.getAssistantAllApp);
