@@ -73,6 +73,15 @@ async function gethandlerUserPage(req, res) {
     ORDER BY u.id ASC`);
     res.json(result);
 }
+async function getNoHandlerUserPage(req, res) {
+    const { minDate, maxDate } = req.query;
+    let dateVal =
+        minDate || maxDate ? `AND (f.create_time BETWEEN '${minDate} 00:00:00' AND '${maxDate} 23:59:59')` : '';
+    let [result] = await pool.execute(`SELECT  COUNT(f.handler) value 
+    FROM application_form f
+    WHERE f.handler ='' AND f.status_id NOT IN (1) ${dateVal}`);
+    res.json(result);
+}
 
 module.exports = {
     getCategoryPage,
@@ -81,4 +90,5 @@ module.exports = {
     getappUserPage,
     gethandlerUnitPage,
     gethandlerUserPage,
+    getNoHandlerUserPage,
 };
